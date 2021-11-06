@@ -1778,6 +1778,36 @@ class Solution {
 
 
 
+### [738. 单调递增的数字](https://leetcode-cn.com/problems/monotone-increasing-digits/)
+
+给定一个非负整数 N，找出小于或等于 N 的最大的整数，同时这个整数需要满足其各个位数上的数字是单调递增。
+
+（当且仅当每个相邻位数上的数字 x 和 y 满足 x <= y 时，我们称这个整数是单调递增的。）
+
+```java
+class Solution {
+    public int monotoneIncreasingDigits(int N) {
+        String[] strings = (N + "").split("");
+        int start = strings.length;
+        for (int i = strings.length - 1; i > 0; i--) {
+            if (Integer.parseInt(strings[i]) < Integer.parseInt(strings[i - 1])) {
+                //只要前面的大于后面,前面的数必须减1,后面的数必为9,用start来记录从第几位开始往后为9
+                strings[i - 1] = (Integer.parseInt(strings[i - 1]) - 1) + "";
+                start = i;
+            }
+        }
+        for (int i = start; i < strings.length; i++) {
+            strings[i] = "9";
+        }
+        return Integer.parseInt(String.join("",strings));
+    }
+}
+```
+
+
+
+
+
 ### [763. 划分字母区间](https://leetcode-cn.com/problems/partition-labels/)
 
 字符串 `S` 由小写字母组成。我们要把这个字符串划分为尽可能多的片段，同一字母最多出现在一个片段中。返回一个表示每个字符串片段的长度的列表。
@@ -1887,6 +1917,96 @@ class Solution {
             sum += A[i];
         }
         return sum;
+    }
+}
+```
+
+
+
+
+
+
+
+## 栈与队列
+
+### [1047. 删除字符串中的所有相邻重复项](https://leetcode-cn.com/problems/remove-all-adjacent-duplicates-in-string/)
+
+给出由小写字母组成的字符串 S，重复项删除操作会选择两个相邻且相同的字母，并删除它们。
+
+在 S 上反复执行重复项删除操作，直到无法继续删除。
+
+在完成所有重复项删除操作后返回最终的字符串。答案保证唯一。
+
+
+
+
+
+### [239. 滑动窗口最大值](https://leetcode-cn.com/problems/sliding-window-maximum/)
+
+给你一个整数数组 nums，有一个大小为 k 的滑动窗口从数组的最左侧移动到数组的最右侧。你只可以看到在滑动窗口内的 k 个数字。滑动窗口每次只向右移动一位。
+
+返回滑动窗口中的最大值。
+
+```java
+class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        if(nums == null || nums.length < 2) return nums;
+        // 双向队列 保存当前窗口最大值的数组位置 保证队列中数组位置的数值按从大到小排序
+        LinkedList<Integer> queue = new LinkedList();
+        // 结果数组
+        int[] result = new int[nums.length-k+1];
+        // 遍历nums数组
+        for(int i = 0;i < nums.length;i++){
+            // 保证从大到小 如果前面数小则需要依次弹出，直至满足要求
+            while(!queue.isEmpty() && nums[queue.peekLast()] <= nums[i]){
+                queue.pollLast();
+            }
+            // 添加当前值对应的数组下标
+            queue.addLast(i);
+            // 判断当前队列中队首的值是否有效
+            if(queue.peek() <= i-k){
+                queue.poll();   
+            } 
+            // 当窗口长度为k时 保存当前窗口中最大值
+            if(i+1 >= k){
+                //设k=3 ,i=2推一下就得出公式
+                result[i+1-k] = nums[queue.peek()];
+            }
+        }
+        return result;
+    }
+}
+```
+
+
+
+### [347. 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)
+
+给你一个整数数组 `nums` 和一个整数 `k` ，请你返回其中出现频率前 `k` 高的元素。你可以按 **任意顺序** 返回答案。
+
+```java
+class Solution {
+    public int[] topKFrequent(int[] nums, int k) {
+        int[] result = new int[k];
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for (int num : nums) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+
+        Set<Map.Entry<Integer, Integer>> entries = map.entrySet();
+        // 根据map的value值正序排，相当于一个小顶堆
+        PriorityQueue<Map.Entry<Integer, Integer>> queue = new PriorityQueue<>((o1, o2) -> o1.getValue() - o2.getValue());
+        for (Map.Entry<Integer, Integer> entry : entries) {
+            queue.offer(entry);
+            if (queue.size() > k) {
+                //这就是不能用大顶堆的原因
+                queue.poll();
+            }
+        }
+        for (int i = k - 1; i >= 0; i--) {
+            result[i] = queue.poll().getKey();
+        }
+        return result;
     }
 }
 ```
@@ -2530,3 +2650,27 @@ class MyHashMap {
 [763. 划分字母区间](https://leetcode-cn.com/problems/partition-labels/)
 
 [56. 合并区间](https://leetcode-cn.com/problems/merge-intervals/)
+
+
+
+
+
+## 2021-11-6
+
+[738. 单调递增的数字](https://leetcode-cn.com/problems/monotone-increasing-digits/)
+
+[714. 买卖股票的最佳时机含手续费](https://leetcode-cn.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/)(第一次交易的时候就提前把服务费算在后一个节点中),来达到后续交易无需服务费,只是我的猜想
+
+[225. 用队列实现栈](https://leetcode-cn.com/problems/implement-stack-using-queues/)
+
+[232. 用栈实现队列](https://leetcode-cn.com/problems/implement-queue-using-stacks/)
+
+[20. 有效的括号](https://leetcode-cn.com/problems/valid-parentheses/)
+
+[1047. 删除字符串中的所有相邻重复项](https://leetcode-cn.com/problems/remove-all-adjacent-duplicates-in-string/)(多种解法)
+
+[150. 逆波兰表达式求值](https://leetcode-cn.com/problems/evaluate-reverse-polish-notation/)
+
+[239. 滑动窗口最大值](https://leetcode-cn.com/problems/sliding-window-maximum/)
+
+[347. 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)
