@@ -2674,3 +2674,31 @@ class MyHashMap {
 [239. 滑动窗口最大值](https://leetcode-cn.com/problems/sliding-window-maximum/)
 
 [347. 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)
+
+
+
+
+
+## 2021-11-7
+
+[242. 有效的字母异位词](https://leetcode-cn.com/problems/valid-anagram/)(直接比较每个位置上的字母是否一样 或者 选择每个字母个数是否一样)
+
+[349. 两个数组的交集](https://leetcode-cn.com/problems/intersection-of-two-arrays/)
+
+[202. 快乐数](https://leetcode-cn.com/problems/happy-number/)
+
+[598. 范围求和 II](https://leetcode-cn.com/problems/range-addition-ii/)
+
+[454. 四数相加 II](https://leetcode-cn.com/problems/4sum-ii/)
+
+[15. 三数之和](https://leetcode-cn.com/problems/3sum/)
+
+[18. 四数之和](https://leetcode-cn.com/problems/4sum/)
+
+
+
+
+
+## 2021-11-8
+
+复习前面3天的内容 (5,6,7)
