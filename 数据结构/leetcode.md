@@ -2702,3 +2702,8 @@ class MyHashMap {
 ## 2021-11-8
 
 复习前面3天的内容 (5,6,7)
+
+[14. 最长公共前缀](https://leetcode-cn.com/problems/longest-common-prefix/)
+
+[299. 猜数字游戏](https://leetcode-cn.com/problems/bulls-and-cows/)
+
