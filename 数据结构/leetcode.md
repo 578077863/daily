@@ -2707,3 +2707,19 @@ class MyHashMap {
 
 [299. 猜数字游戏](https://leetcode-cn.com/problems/bulls-and-cows/)
 
+
+
+
+
+## 2021-11-9
+
+[151. 翻转字符串里的单词](https://leetcode-cn.com/problems/reverse-words-in-a-string/)(多种题解)
+
+543 124 687 都差不多
+
+[543. 二叉树的直径](https://leetcode-cn.com/problems/diameter-of-binary-tree/)
+
+[124. 二叉树中的最大路径和](https://leetcode-cn.com/problems/binary-tree-maximum-path-sum/)
+
+[687. 最长同值路径](https://leetcode-cn.com/problems/longest-univalue-path/)
+
