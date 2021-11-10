@@ -2013,6 +2013,145 @@ class Solution {
 
 
 
+
+
+## 单调栈
+
+
+
+### [739. 每日温度](https://leetcode-cn.com/problems/daily-temperatures/)
+
+请根据每日 `气温` 列表 `temperatures` ，请计算在每一天需要等几天才会有更高的温度。如果气温在这之后都不会升高，请在该位置用 `0` 来代替
+
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+
+        //单调栈
+        Stack<Integer> stack=new Stack<>();
+        int[] res=new int[temperatures.length];
+
+        for(int i=0;i<temperatures.length;i++){
+            while(!stack.isEmpty() && temperatures[i] > temperatures[stack.peek()]){
+                res[stack.peek()]=i-stack.pop();
+            }
+
+            stack.push(i);
+        }
+
+        return res;
+    }
+}
+```
+
+
+
+
+
+### [496. 下一个更大元素 I](https://leetcode-cn.com/problems/next-greater-element-i/)
+
+给你两个 没有重复元素 的数组 nums1 和 nums2 ，其中nums1 是 nums2 的子集。
+
+请你找出 nums1 中每个元素在 nums2 中的下一个比其大的值。
+
+nums1 中数字 x 的下一个更大元素是指 x 在 nums2 中对应位置的右边的第一个比 x 大的元素。如果不存在，对应位置输出 -1 。
+
+
+
+```java
+class Solution {
+    public int[] nextGreaterElement(int[] nums1, int[] nums2) {
+        int n = nums1.length;
+        int m = nums2.length;
+
+        // 自定义哈希表
+        int[] map = new int[10001];
+        for (int i = 0; i < n; i++) {
+            map[nums1[i]] = i + 1;
+        }
+
+        int[] ans = new int[n];
+
+        // 自定义栈的写法
+        int[] stack = new int[m];
+        int size = 0;
+        for (int i = m - 1; i >= 0; i--) {
+            // 弹出栈顶比当前元素小的数
+            while (size > 0 && stack[size - 1] < nums2[i]) {
+                size--;
+            }
+
+            // map中含有的才计算
+            if (map[nums2[i]] != 0) {
+                // 构造答案,因为是从后往前的顺序,因此 nums2[i]比它大的第一个一定在栈的顶端,只要size不为0,就说明一定存在
+                ans[map[nums2[i]] - 1] = size == 0 ? -1 : stack[size - 1];
+            }
+
+            // 当前元素入栈
+            stack[size++] = nums2[i];
+        }
+
+        return ans;
+    }
+}
+
+```
+
+
+
+### [503. 下一个更大元素 II](https://leetcode-cn.com/problems/next-greater-element-ii/)
+
+给定一个循环数组（最后一个元素的下一个元素是数组的第一个元素），输出每个元素的下一个更大元素。数字 x 的下一个更大的元素是按数组遍历顺序，这个数字之后的第一个比它更大的数，这意味着你应该循环地搜索它的下一个更大的数。如果不存在，则输出 -1。
+
+```java
+//这种方法有一部分是重复的
+class Solution {
+    public int[] nextGreaterElements(int[] nums) {
+        //边界判断
+        if(nums == null || nums.length <= 1) {
+            return new int[]{-1};
+        }
+        int size = nums.length;
+        int[] result = new int[size];//存放结果
+        Arrays.fill(result,-1);//默认全部初始化为-1
+        Stack<Integer> st= new Stack<>();//栈中存放的是nums中的元素下标
+        for(int i = 0; i < 2*size; i++) {
+                            //如果当前值大于 栈顶的元素,说明找到第一个大于当前栈顶元素的值,更新后弹出,这样一直循环
+            while(!st.empty() && nums[i % size] > nums[st.peek()]) {
+                result[st.peek()] = nums[i % size];//更新result
+                st.pop();//弹出栈顶
+            }
+            st.push(i % size);
+        }
+        return result;
+    }
+}
+
+	//这种更巧妙
+    public int[] nextGreaterElement(int[] nums) {
+        Deque<Integer> deque = new LinkedList<>();
+        int[] ans = new int[nums.length];
+        for (int i = nums.length - 1; i >= 0; i--) {
+            deque.push(nums[i]);
+        }
+        for (int i = nums.length - 1; i >= 0; i--) {
+            while (!deque.isEmpty() && nums[i] >= deque.peek()) {
+                deque.pop();
+            }
+            if (deque.isEmpty()) {
+                ans[i] = -1;
+                deque.push(nums[i]);
+            } else {
+                ans[i] = deque.peek();
+                deque.push(nums[i]);
+            }
+        }
+        return ans;
+    }
+```
+
+
+
 ## 其他
 
 ### [7. 整数反转](https://leetcode-cn.com/problems/reverse-integer/)
@@ -2722,4 +2861,14 @@ class MyHashMap {
 [124. 二叉树中的最大路径和](https://leetcode-cn.com/problems/binary-tree-maximum-path-sum/)
 
 [687. 最长同值路径](https://leetcode-cn.com/problems/longest-univalue-path/)
+
+
+
+## 2021-11-10
+
+[739. 每日温度](https://leetcode-cn.com/problems/daily-temperatures/)
+
+[496. 下一个更大元素 I](https://leetcode-cn.com/problems/next-greater-element-i/)
+
+[503. 下一个更大元素 II](https://leetcode-cn.com/problems/next-greater-element-ii/)
 
