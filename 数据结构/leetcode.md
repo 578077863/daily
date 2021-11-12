@@ -2919,3 +2919,13 @@ class MyHashMap {
 
 [17. 电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/)
 
+
+
+## 2021-11-12
+
+[39. 组合总和](https://leetcode-cn.com/problems/combination-sum/)(注意下模板就行)
+
+[40. 组合总和 II](https://leetcode-cn.com/problems/combination-sum-ii/)(这题先排序,然后同一层树不允许出现相同元素,如 1 1 2,这样必会造成重复,1 2 就可以列出所有可能)
+
+[131. 分割回文串](https://leetcode-cn.com/problems/palindrome-partitioning/)
+
