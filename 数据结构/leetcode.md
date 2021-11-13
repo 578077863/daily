@@ -2929,3 +2929,14 @@ class MyHashMap {
 
 [131. 分割回文串](https://leetcode-cn.com/problems/palindrome-partitioning/)
 
+
+
+## 2021-11-13
+
+[93. 复原 IP 地址](https://leetcode-cn.com/problems/restore-ip-addresses/)
+
+[78. 子集](https://leetcode-cn.com/problems/subsets/)(亲麻烦把眼睛擦亮再做题好吗? 把i写成startIdx,卡了10分钟)
+
+[90. 子集 II](https://leetcode-cn.com/problems/subsets-ii/)
+
+[46. 全排列](https://leetcode-cn.com/problems/permutations/)

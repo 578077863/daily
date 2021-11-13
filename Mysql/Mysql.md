@@ -37,6 +37,8 @@
 
 事务有哪几个隔离级别:
 
+[数据库的4种隔离级别 - myseries - 博客园 (cnblogs.com)](https://www.cnblogs.com/myseries/p/10748912.html#:~:text=数据库事务的隔离级别有4种，由低到高分别为Read uncommitted 、Read committed,、Repeatable read 、Serializable 。 而且，在事务的并发操作中可能会出现脏读，不可重复读，幻读。)
+
 1. 读未提交
 2. 读已提交
 3. 可重复读
@@ -67,6 +69,8 @@
 
 
 ## innoDB和myLSAM
+
+
 
 
 

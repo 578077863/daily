@@ -653,3 +653,20 @@ try-with-resources
 
 
 
+
+
+
+
+## sleep()和wait()的区别
+
+wai()是Object的方法，而sleep()是Thread的静态方法
+
+wait()会释放锁，sleep()不会
+
+使用wait()挂起期间，线程会释放锁，因为如果不释放锁，其他线程就无法进入对象的同步方法或同步控制块中，无法执行notify或nitifyAll来唤醒挂起的线程，这就造成死锁
+
+wait，notify，nitifyAll只能在同步方法或同步控制块中使用，否则会在运行时抛出IllegalMonitorStateException
+
+sleep在任何地方都可以使用
+
+[Java中sleep()和wait()的区别 - 简书 (jianshu.com)](https://www.jianshu.com/p/87a7f24c45d4)
