@@ -1450,6 +1450,81 @@ public Node connect(Node root) {
 
 
 
+### [5927. 反转偶数长度组的节点](https://leetcode-cn.com/problems/reverse-nodes-in-even-length-groups/)
+
+给你一个链表的头节点 head 。
+
+链表中的节点 按顺序 划分成若干 非空 组，这些非空组的长度构成一个自然数序列（1, 2, 3, 4, ...）。一个组的 长度 就是组中分配到的节点数目。换句话说：
+
+节点 1 分配给第一组
+节点 2 和 3 分配给第二组
+节点 4、5 和 6 分配给第三组，以此类推
+注意，最后一组的长度可能小于或者等于 1 + 倒数第二组的长度 。
+
+反转 每个 偶数 长度组中的节点，并返回修改后链表的头节点 head 。
+
+```java
+class Solution {
+    public ListNode reverseEvenLengthGroups(ListNode head) {
+          if(head==null || head.next==null) return head;
+           return  reverse(head,1);// 1 表示初始状态下 分组的长度
+           // 之后 为2，3，4，.....
+    }
+    ListNode  reverse(ListNode head, int group ){
+        if(head==null || head.next==null) return head;
+        ListNode slow = head; // 每组链表的表头
+        ListNode fast =  head; //下一组链表的表头
+        ListNode end= head ; // 每组链表的末尾
+        int count=0; // 记录当前已经遍历这组链表的节点个数
+        for( int i=0;i<group;++i){
+            if(fast==null) { // 针对最后一组链表 长度达不到group
+                if(count<group && count%2!=0){ //当最后一组链表的长度为奇数
+                    ListNode tmp= reverse(fast, group+1 ); 
+                    return slow;
+                }else if(count<group &&  count %2==0){  // 当最后一组链表的长度为偶数
+                    ListNode  newHead =reverseList(slow,fast);
+                    slow.next= reverse(fast, group+1); // 下一组链表的起始地址位置
+                    return newHead;
+                } 
+                return null; 
+            }else{
+                 count++;
+            } 
+            if(i<group-1){
+                end=end.next; // 遍历每组链表的节点 得到 该组链表的尾节点
+            }
+
+            fast=fast.next;
+        }
+
+        if(group%2!=0){
+            ListNode tmp = reverse(fast, group+1);
+            end.next= tmp;
+            return slow;  // 这里进行递归回去
+        }else{
+             ListNode  newHead =reverseList(slow,fast);
+              slow.next= reverse(fast, group+1);
+              return newHead; 
+        }
+
+    }
+
+    ListNode reverseList(ListNode head ,ListNode fast ){
+        ListNode curNode=head;
+        ListNode pre =null; 
+        //只反转第 n 组: 1-> 2 -> 3  => 1 <- 2 <- 3,没有涉及组外
+        while(curNode!=fast){
+            ListNode temp= curNode.next;
+            curNode.next = pre;
+            pre= curNode;
+            curNode=temp; 
+        }
+
+        return pre;
+    }
+}
+```
+
 
 
 ## 贪心算法
@@ -2940,3 +3015,13 @@ class MyHashMap {
 [90. 子集 II](https://leetcode-cn.com/problems/subsets-ii/)
 
 [46. 全排列](https://leetcode-cn.com/problems/permutations/)
+
+
+
+
+
+## 2021-11-14
+
+[47. 全排列 II](https://leetcode-cn.com/problems/permutations-ii/)
+
+[5927. 反转偶数长度组的节点](https://leetcode-cn.com/problems/reverse-nodes-in-even-length-groups/)
