@@ -3025,3 +3025,13 @@ class MyHashMap {
 [47. 全排列 II](https://leetcode-cn.com/problems/permutations-ii/)
 
 [5927. 反转偶数长度组的节点](https://leetcode-cn.com/problems/reverse-nodes-in-even-length-groups/)
+
+[42. 接雨水](https://leetcode-cn.com/problems/trapping-rain-water/)
+
+
+
+
+
+## 2021-11-15
+
+[496. 下一个更大元素 I](https://leetcode-cn.com/problems/next-greater-element-i/)

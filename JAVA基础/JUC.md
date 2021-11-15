@@ -1,5 +1,11 @@
 # JUC
 
+
+
+## interrupt 
+
+如果是sleep时被打断会出现异常,且其打断标记会被清除,所以得调用当前线程的interrupt设置打断标记为true,如果是处于运行状态,那么其打断标记会设置为true
+
 线程1先将对象的mark复制到自身的锁记录,再将对象的mark word设置成线程的锁记录地址
 
 lamada表达式在接口上加注解@FunctionalInterface,该接口的抽象方法只能有一个
@@ -246,3 +252,77 @@ Monitor获取失败到陷入阻塞中间有自旋优化,如果成功则避免阻
 ## wait sleep
 
 sleep(long n) 和 wait(long n)的状态都是 TIMED_WAITING,不带参数的wait进入的是 WAITING状态
+
+
+
+
+
+## 同步模式之保护性暂停
+
+Guarded Suspension , 用一个线程等待另一个线程执行的结果
+
+一 一对应模式,
+
+
+
+### join原理用了保护性暂停模式
+
+
+
+## park 和 unpark
+
+与 wait/notify的区别
+
+- wait，notify 和 notifyAll 必须配合**Object Monitor**一起使用，而park，unpark不必
+- park ，unpark 是以**线程为单位**来**阻塞**和**唤醒**线程，而 notify 只能随机唤醒一个等待线程，notifyAll 是唤醒所有等待线程，就不那么精确
+- park & unpark 可以**先 unpark**，而 wait & notify 不能先 notify
+- **park不会释放锁**，而wait会释放锁
+
+
+
+
+
+## 定位死锁
+
+jps+jstack ThreadID
+
+jconsole检测死锁
+
+
+
+
+
+## 活锁
+
+死锁: 两线程都持有对方的锁,导致两线程都阻塞住了
+
+
+
+活锁: 两线程都不阻塞,但都改变对方的结束条件
+
+解决办法: 执行时间有一定的交错,睡眠随机数
+
+
+
+饥饿: 某些线程因为优先级太低，导致一直无法获得资源的现象。
+
+在使用顺序加锁时，可能会出现饥饿现象
+
+
+
+## ReentrantLock
+
+**和synchronized相比具有的的特点**
+
+- 可中断
+- 可以设置超时时间
+- 可以设置为公平锁 (先到先得)
+- 支持多个条件变量( 具有**多个**waitset)
+
+
+
+
+
+## CAS
+
+ABA问题 用版本号
