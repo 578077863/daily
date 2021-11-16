@@ -2672,6 +2672,53 @@ class MyHashMap {
 
 
 
+
+
+
+
+## 动态规划
+
+
+
+### [746. 使用最小花费爬楼梯](https://leetcode-cn.com/problems/min-cost-climbing-stairs/)
+
+数组的每个下标作为一个阶梯，第 i 个阶梯对应着一个非负数的体力花费值 cost[i]（下标从 0 开始）。
+
+每当你爬上一个阶梯你都要花费对应的体力值，一旦支付了相应的体力值，你就可以选择向上爬一个阶梯或者爬两个阶梯。
+
+请你找出达到楼层顶部的最低花费。在开始时，你可以选择从下标为 0 或 1 的元素作为初始阶梯。
+
+ 
+
+```java
+
+//我自己的思路
+class Solution {
+    public int minCostClimbingStairs(int[] cost) {
+        //到达终点所花费的体力值,从最小开始模拟
+        int[] record =new int[cost.length+1];
+
+        int a = cost[0], b = cost[1];
+
+        //最后是 record[n]+ cost[n] and record[n-1] + cost[n-1] compare
+
+        for(int i = 2; i <= cost.length; i++){
+            record[i] = Math.min(record[i-1] + cost[i-1],record[i-2] + cost[i-2]);
+        }
+
+        return record[record.length-1];
+    }
+}
+```
+
+
+
+http://8.129.34.193:8080/ProjectEnding/
+
+---
+
+
+
 ## 2021-10-10
 
 > [467. 环绕字符串中唯一的子字符串](https://leetcode-cn.com/problems/unique-substrings-in-wraparound-string/)
@@ -3035,3 +3082,13 @@ class MyHashMap {
 ## 2021-11-15
 
 [496. 下一个更大元素 I](https://leetcode-cn.com/problems/next-greater-element-i/)
+
+
+
+
+
+## 2021-11-16
+
+[746. 使用最小花费爬楼梯](https://leetcode-cn.com/problems/min-cost-climbing-stairs/)
+
+[62. 不同路径](https://leetcode-cn.com/problems/unique-paths/)
