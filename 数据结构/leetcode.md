@@ -666,6 +666,74 @@ class Solution {
 
 ## 链表
 
+
+
+### [19. 删除链表的倒数第 N 个结点](https://leetcode-cn.com/problems/remove-nth-node-from-end-of-list/)
+
+给你一个链表，删除链表的倒数第 `n` 个结点，并且返回链表的头结点。
+
+```java
+//快慢指针
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode dummy = new ListNode(-1);
+        dummy.next = head;
+
+        ListNode slow = dummy;
+        ListNode fast = dummy;
+        while (n-- > 0) {
+            fast = fast.next;
+        }
+        // 记住 待删除节点slow 的上一节点
+        ListNode prev = null;
+        while (fast != null) {
+            prev = slow;
+            slow = slow.next;
+            fast = fast.next;
+        }
+        // 上一节点的next指针绕过 待删除节点slow 直接指向slow的下一节点
+        prev.next = slow.next;
+        // 释放 待删除节点slow 的next指针, 这句删掉也能AC
+        slow.next = null;
+
+        return dummy.next;
+    }
+}
+
+//栈
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode dummy = new ListNode();
+        dummy.next = head;
+        ListNode res =dummy;
+        Stack<ListNode> stack = new Stack<ListNode>();
+
+        ListNode target = null;
+
+        ListNode pre = null;
+        ListNode t = dummy;
+        while(t != null){
+            stack.push(t);
+            t = t.next;
+        }
+
+        while( n-- > 1){
+            stack.pop();
+        }
+
+        target = stack.pop();
+        pre = stack.pop();
+        pre.next = target.next;
+
+        return dummy.next;
+
+
+    }
+}
+```
+
+
+
 ### [203. 移除链表元素](https://leetcode-cn.com/problems/remove-linked-list-elements/)
 
 给你一个链表的头节点 `head` 和一个整数 `val` ，请你删除链表中所有满足 `Node.val == val` 的节点，并返回 **新的头节点** 。
@@ -714,6 +782,188 @@ class Solution {
     }
 }
 
+```
+
+
+
+
+
+
+
+
+
+
+
+### [707. 设计链表](https://leetcode-cn.com/problems/design-linked-list/)
+
+```java
+//单链表
+class ListNode {
+    int val;
+    ListNode next;
+    ListNode(){}
+    ListNode(int val) {
+        this.val=val;
+    }
+}
+class MyLinkedList {
+    //size存储链表元素的个数
+    int size;
+    //虚拟头结点
+    ListNode head;
+
+    //初始化链表
+    public MyLinkedList() {
+        size = 0;
+        head = new ListNode(0);
+    }
+
+    //获取第index个节点的数值
+    public int get(int index) {
+        //如果index非法，返回-1
+        if (index < 0 || index >= size) {
+            return -1;
+        }
+        ListNode currentNode = head;
+        //包含一个虚拟头节点，所以查找第 index+1 个节点
+        for (int i = 0; i <= index; i++) {
+            currentNode = currentNode.next;
+        }
+        return currentNode.val;
+    }
+
+    //在链表最前面插入一个节点
+    public void addAtHead(int val) {
+        addAtIndex(0, val);
+    }
+
+    //在链表的最后插入一个节点
+    public void addAtTail(int val) {
+        addAtIndex(size, val);
+    }
+
+    // 在第 index 个节点之前插入一个新节点，例如index为0，那么新插入的节点为链表的新头节点。
+    // 如果 index 等于链表的长度，则说明是新插入的节点为链表的尾结点
+    // 如果 index 大于链表的长度，则返回空
+    public void addAtIndex(int index, int val) {
+        if (index > size) {
+            return;
+        }
+        if (index < 0) {
+            index = 0;
+        }
+        size++;
+        //找到要插入节点的前驱
+        ListNode pred = head;
+        for (int i = 0; i < index; i++) {
+            pred = pred.next;
+        }
+        ListNode toAdd = new ListNode(val);
+        toAdd.next = pred.next;
+        pred.next = toAdd;
+    }
+
+    //删除第index个节点
+    public void deleteAtIndex(int index) {
+        if (index < 0 || index >= size) {
+            return;
+        }
+        size--;
+        ListNode pred = head;
+        for (int i = 0; i < index; i++) {
+            pred = pred.next;
+        }
+        pred.next = pred.next.next;
+    }
+}
+```
+
+
+
+我自己写的
+
+```java
+class ListNode{
+    int val;
+    ListNode next;
+
+    public ListNode(){};
+    public ListNode(int val){
+        this.val = val;
+    }
+}
+class MyLinkedList {
+    ListNode pre;
+    int size;
+
+    public MyLinkedList() {
+        pre = new ListNode();
+    }
+    
+    public int get(int index) {
+        if(index < 0 || index >=size){return -1;}
+        ListNode node = pre;
+        while(index > 0){
+            node = node.next;
+            index--;
+        }
+
+        return node.next.val;
+    }
+    
+    public void addAtHead(int val) {
+        addAtIndex(-1,val);
+    }
+    
+    public void addAtTail(int val) {
+        addAtIndex(size,val);
+    }
+    
+    public void addAtIndex(int index, int val) {
+
+        if(index > size){return;}
+        ListNode node = new ListNode(val);
+        if(index < 0){
+            node.next = pre.next;
+            pre.next = node;
+            size++;
+            return;
+        }
+
+        ListNode head = pre;
+
+        while(index > 0){
+            head = head.next;
+            index--;
+        }
+        node.next = head.next;
+        head.next = node;
+        size++;
+    }
+    
+    public void deleteAtIndex(int index) {
+        if(index >= size || index < 0){return;}
+
+        ListNode head = pre;
+
+        while(index > 0){
+            head = head.next;
+            index--;
+        }
+        head.next = head.next.next;
+        size--;
+    }
+}
+
+/**
+ * Your MyLinkedList object will be instantiated and called as such:
+ * MyLinkedList obj = new MyLinkedList();
+ * int param_1 = obj.get(index);
+ * obj.addAtHead(val);
+ * obj.addAtTail(val);
+ * obj.addAtIndex(index,val);
+ * obj.deleteAtIndex(index);
+ */
 ```
 
 
@@ -3092,3 +3342,39 @@ http://8.129.34.193:8080/ProjectEnding/
 [746. 使用最小花费爬楼梯](https://leetcode-cn.com/problems/min-cost-climbing-stairs/)
 
 [62. 不同路径](https://leetcode-cn.com/problems/unique-paths/)
+
+
+
+
+
+
+
+## 2021-11-17
+
+[203. 移除链表元素](https://leetcode-cn.com/problems/remove-linked-list-elements/)
+
+[707. 设计链表](https://leetcode-cn.com/problems/design-linked-list/)
+
+[206. 反转链表](https://leetcode-cn.com/problems/reverse-linked-list/)
+
+
+
+
+
+## 2021--11-18
+
+思路不够流畅:
+
+[203. 移除链表元素](https://leetcode-cn.com/problems/remove-linked-list-elements/)
+
+[707. 设计链表](https://leetcode-cn.com/problems/design-linked-list/)
+
+
+
+不会做:
+
+[19. 删除链表的倒数第 N 个结点](https://leetcode-cn.com/problems/remove-nth-node-from-end-of-list/)
+
+[面试题 02.07. 链表相交](https://leetcode-cn.com/problems/intersection-of-two-linked-lists-lcci/)
+
+[142. 环形链表 II](https://leetcode-cn.com/problems/linked-list-cycle-ii/)
