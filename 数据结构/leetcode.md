@@ -3361,7 +3361,7 @@ http://8.129.34.193:8080/ProjectEnding/
 
 
 
-## 2021--11-18
+## 2021-11-18
 
 思路不够流畅:
 
@@ -3378,3 +3378,23 @@ http://8.129.34.193:8080/ProjectEnding/
 [面试题 02.07. 链表相交](https://leetcode-cn.com/problems/intersection-of-two-linked-lists-lcci/)
 
 [142. 环形链表 II](https://leetcode-cn.com/problems/linked-list-cycle-ii/)
+
+
+
+## 2021-11-19
+
+不会做:
+
+[454. 四数相加 II](https://leetcode-cn.com/problems/4sum-ii/)
+
+[15. 三数之和](https://leetcode-cn.com/problems/3sum/)
+
+[18. 四数之和](https://leetcode-cn.com/problems/4sum/)
+
+[343. 整数拆分](https://leetcode-cn.com/problems/integer-break/)
+
+
+
+扩展思路:
+
+[剑指 Offer 03. 数组中重复的数字](https://leetcode-cn.com/problems/shu-zu-zhong-zhong-fu-de-shu-zi-lcof/)(原地交换)
