@@ -88,7 +88,7 @@ public:
 
 
 
-### [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+#### [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
 
 给定一个按照升序排列的整数数组 nums，和一个目标值 target。找出给定目标值在数组中的开始位置和结束位置。
 
@@ -161,7 +161,7 @@ class Solution {
 
 
 
-### [35. 搜索插入位置](https://leetcode-cn.com/problems/search-insert-position/)
+#### [35. 搜索插入位置](https://leetcode-cn.com/problems/search-insert-position/)
 
 给定一个排序数组和一个目标值，在数组中找到目标值，并返回其索引。如果目标值不存在于数组中，返回它将会被按顺序插入的位置。
 
@@ -190,7 +190,7 @@ class Solution {
 
 
 
-### 69.Sqrt(x)
+#### 69.Sqrt(x)
 
 ```java
 给你一个非负整数 x ，计算并返回 x 的 算术平方根 。
@@ -235,7 +235,7 @@ class Solution {
 
 
 
-### [367. 有效的完全平方数](https://leetcode-cn.com/problems/valid-perfect-square/)
+#### [367. 有效的完全平方数](https://leetcode-cn.com/problems/valid-perfect-square/)
 
 ```java
 class Solution {
@@ -263,6 +263,114 @@ class Solution {
 
 
 ## 双指针
+
+
+
+#### [15. 三数之和](https://leetcode-cn.com/problems/3sum/)
+
+给你一个包含 n 个整数的数组 nums，判断 nums 中是否存在三个元素 a，b，c ，使得 a + b + c = 0 ？请你找出所有和为 0 且不重复的三元组。
+
+注意：答案中不可以包含重复的三元组。
+
+```java
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        
+        List<List<Integer>> result=new ArrayList<List<Integer>>();
+
+        //首先判断是否为null
+        if(null == nums){
+            return result;
+        }
+
+        //排序
+        Arrays.sort(nums);
+
+        //首先固定一个数,然后利用双指针
+        for(int i=0;i<nums.length-2;i++){
+            if(nums[i]>0) break;
+            if(i>=1 && nums[i] == nums[i-1]) continue;
+            
+            int target=-nums[i];
+
+            int left=i+1,right=nums.length-1;
+
+            //这一步将 nums[i] 所有可能出现的结果都添加进result中
+            while(left<right){
+                if(target == nums[left] + nums[right]){
+                    result.add(Arrays.asList(new Integer[]{nums[i],nums[left],nums[right]}));
+                    left++;right--;
+                    while(left<right && nums[left] == nums[left-1]) {left++;}
+                    while(left<right && nums[right] == nums[right+1]) {right--;}
+                }else if(target > nums[left] + nums[right]){
+                    left++;
+                }else{
+                    right--;
+                }
+            }
+
+        }
+
+        return result;
+    }
+}
+```
+
+
+
+#### [18. 四数之和](https://leetcode-cn.com/problems/4sum/)
+
+给你一个由 n 个整数组成的数组 nums ，和一个目标值 target 。请你找出并返回满足下述全部条件且不重复的四元组 [nums[a], nums[b], nums[c], nums[d]] （若两个四元组元素一一对应，则认为两个四元组重复）：
+
+0 <= a, b, c, d < n
+a、b、c 和 d 互不相同
+nums[a] + nums[b] + nums[c] + nums[d] == target
+你可以按 任意顺序 返回答案 。
+
+```java
+class Solution {
+    public List<List<Integer>> fourSum(int[] nums, int target) {
+        List<List<Integer>> result = new ArrayList<>();
+        Arrays.sort(nums);
+       
+        for (int i = 0; i < nums.length; i++) {
+
+            if (i > 0 && nums[i - 1] == nums[i]) {
+                continue;
+            }
+            
+            for (int j = i + 1; j < nums.length; j++) {
+
+                if (j > i + 1 && nums[j - 1] == nums[j]) {
+                    continue;
+                }
+
+                int left = j + 1;
+                int right = nums.length - 1;
+                while (right > left) {
+                    int sum = nums[i] + nums[j] + nums[left] + nums[right];
+                    if (sum > target) {
+                        right--;
+                    } else if (sum < target) {
+                        left++;
+                    } else {
+                        result.add(Arrays.asList(nums[i], nums[j], nums[left], nums[right]));
+                        
+                        while (right > left && nums[right] == nums[right - 1]) right--;
+                        while (right > left && nums[left] == nums[left + 1]) left++;
+
+                        left++;
+                        right--;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+}
+```
+
+
 
 #### [26. 删除有序数组中的重复项](https://leetcode-cn.com/problems/remove-duplicates-from-sorted-array/)
 
@@ -330,6 +438,50 @@ class Solution {
 
 
 
+#### [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+
+给定一个按照升序排列的整数数组 nums，和一个目标值 target。找出给定目标值在数组中的开始位置和结束位置。
+
+如果数组中不存在目标值 target，返回 [-1, -1]。
+
+进阶：
+
+你可以设计并实现时间复杂度为 O(log n) 的算法解决此问题吗？
+
+```java
+class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        int[] res = new int[] {-1, -1};
+        res[0] = binarySearch(nums, target, true);
+        res[1] = binarySearch(nums, target, false);
+        return res;
+    }
+    //leftOrRight为true找左边界 false找右边界
+    public int binarySearch(int[] nums, int target, boolean leftOrRight) {
+        int res = -1;
+        int left = 0, right = nums.length - 1, mid;
+        while(left <= right) {
+            mid = left + (right - left) / 2;
+            if(target < nums[mid])
+                right = mid - 1;
+            else if(target > nums[mid])
+                left = mid + 1;
+
+            //处理target == nums[mid]
+            else {
+                res = mid;//先记录下当前已知的值等于target的坐标,至于是靠近左边还是右边取决于 leftOrRight
+                //往左边找
+                if(leftOrRight)
+                    right = mid - 1;
+                else
+                    left = mid + 1;
+            }
+        }
+        return res;
+    }
+}
+```
+
 
 
 #### [283. 移动零](https://leetcode-cn.com/problems/move-zeroes/)
@@ -378,6 +530,48 @@ class Solution {
         }
     }
 ```
+
+
+
+#### [454. 四数相加 II](https://leetcode-cn.com/problems/4sum-ii/)
+
+给你四个整数数组 nums1、nums2、nums3 和 nums4 ，数组长度都是 n ，请你计算有多少个元组 (i, j, k, l) 能满足：
+
+0 <= i, j, k, l < n
+nums1[i] + nums2[j] + nums3[k] + nums4[l] == 0
+
+```java
+class Solution {
+    public int fourSumCount(int[] nums1, int[] nums2, int[] nums3, int[] nums4) {
+        Map<Integer, Integer> map = new HashMap<>();
+        int temp;
+        int res = 0;
+        //统计两个数组中的元素之和，同时统计出现的次数，放入map
+        for (int i : nums1) {
+            for (int j : nums2) {
+                temp = i + j;
+                if (map.containsKey(temp)) {
+                    map.put(temp, map.get(temp) + 1);
+                } else {
+                    map.put(temp, 1);
+                }
+            }
+        }
+        //统计剩余的两个元素的和，在map中找是否存在相加为0的情况，同时记录次数
+        for (int i : nums3) {
+            for (int j : nums4) {
+                temp = i + j;
+                if (map.containsKey(0 - temp)) {
+                    res += map.get(0 - temp);
+                }
+            }
+        }
+        return res;
+    }
+}
+```
+
+
 
 #### [844. 比较含退格的字符串](https://leetcode-cn.com/problems/backspace-string-compare/)
 
@@ -3398,3 +3592,21 @@ http://8.129.34.193:8080/ProjectEnding/
 扩展思路:
 
 [剑指 Offer 03. 数组中重复的数字](https://leetcode-cn.com/problems/shu-zu-zhong-zhong-fu-de-shu-zi-lcof/)(原地交换)
+
+
+
+
+
+
+
+## 20221-11-20
+
+不会做:
+
+[594. 最长和谐子序列](https://leetcode-cn.com/problems/longest-harmonious-subsequence/)
+
+[34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+
+思路不清晰:
+
+[15. 三数之和](https://leetcode-cn.com/problems/3sum/)
