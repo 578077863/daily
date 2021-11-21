@@ -458,7 +458,15 @@ public static void main(String[] args) {
 
 
 
+### 4. HashMap和HashTable区别
 
+HashTable 使用 synchronized 来进行同步
+
+Hashmap是允许key和value为null值的，用containsValue和containsKey方法判断是否包含对应键值对；HashTable键值对都不能为空，否则包空指针异常。
+
+HashMap 的迭代器是 fail-fast(并发修改或用迭代器遍历时不通过迭代器进行修改会报异常)迭代器
+
+HashMap不能保证随着时间的推移 Map中元素的次序不变
 
 ## 对象的创建和引用
 

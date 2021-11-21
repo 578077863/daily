@@ -828,3 +828,29 @@ reentrantLock实现可见性和原子性，基于读写volatile变量和CAS指�
 10. RUNNABLE <–> TERMINATED
 
     当前线**程所有代码运行完毕**，进入 TERMINATED
+
+
+
+
+
+Java线程状态和操作系统线程有什么不同？
+
+[(39条消息) Java线程和操作系统线程的关系_CringKong的博客-CSDN博客_java线程和操作系统线程](https://blog.csdn.net/CringKong/article/details/79994511)
+
+
+
+操作系统中的 Ready 和 Running 状态 合起来对应 java Runnable状态
+
+
+
+为什么要合起来呢?
+
+因为 主流JVM的底层系统调度全交给操作系统,所以jvm启动线程后进入runnable,这时候线程处于操作系统调度中,可以处于运行中（内核态）或者阻塞（挂起到用户态），所以jvm并不知道它启动以后的线程是处于操作系统阻塞还是操作系统运行中，因此笼统得称之为runnable。
+
+
+
+
+
+现在的时分多任务操作系统架构 通常都是用 时间片轮转的方式进行抢占式调度
+
+通常 Java的线程状态是服务于监控的,由于线程的上下文切换速度对于人来说非常快,那么区分ready 与 running 就没什么意义

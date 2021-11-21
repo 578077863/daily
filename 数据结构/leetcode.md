@@ -50,6 +50,190 @@ public class QuickSort {
 
 
 
+## 字符串
+
+
+
+
+
+#### [剑指 Offer 58 - II. 左旋转字符串](https://leetcode-cn.com/problems/zuo-xuan-zhuan-zi-fu-chuan-lcof/)
+
+```java
+class Solution {
+    public String reverseLeftWords(String s, int n) {
+        //方法一
+        //return s.substring(n,s.length())+s.substring(0,n);
+
+        //方法二
+       StringBuilder stringBuilder=new StringBuilder();
+       for(int i=n;i<s.length();i++){
+           stringBuilder.append(s.charAt(i));
+       }
+
+       for(int i=0;i<n;i++){
+           stringBuilder.append(s.charAt(i));
+       }
+       return stringBuilder.toString();
+
+
+//        方法三:以二为原理
+        // StringBuilder stringBuilder=new StringBuilder();
+        // for(int i=n;i<s.length()+n;i++){
+        //     stringBuilder.append(s.charAt(i%s.length()));
+        // }
+        // return stringBuilder.toString();
+
+//        //方法四:耗费空间
+//        String res="";
+//        for (int i=n;i<s.length()+n;i++){
+//            res+=s.charAt(i%s.length());
+//        }
+    }
+}
+```
+
+
+
+#### [541. 反转字符串 II](https://leetcode-cn.com/problems/reverse-string-ii/)
+
+给定一个字符串 s 和一个整数 k，从字符串开头算起，每计数至 2k 个字符，就反转这 2k 字符中的前 k 个字符。
+
+如果剩余字符少于 k 个，则将剩余字符全部反转。
+如果剩余字符小于 2k 但大于或等于 k 个，则反转前 k 个字符，其余字符保持原样。
+
+```java
+class Solution {
+    public String reverseStr(String s, int k) {
+        char[] arr=s.toCharArray();
+        int len=arr.length;
+
+        for(int i=0;i<len;i+=2*k){
+
+            change(arr,i,Math.min(len,i+k)-1);
+        }
+
+        return new String(arr);
+    }
+    public void change(char[] arr,int left,int right){
+
+        while(left<right){
+            char temp=arr[left];
+            arr[left]=arr[right];
+            arr[right]=temp;
+            left++;
+            right--;
+        }
+    }
+}
+```
+
+
+
+#### [151. 翻转字符串里的单词](https://leetcode-cn.com/problems/reverse-words-in-a-string/)
+
+```java
+class Solution {
+   /**
+     * 不使用Java内置方法实现
+     * <p>
+     * 1.去除首尾以及中间多余空格
+     * 2.反转整个字符串
+     * 3.反转各个单词
+     */
+    public String reverseWords(String s) {
+        // System.out.println("ReverseWords.reverseWords2() called with: s = [" + s + "]");
+        // 1.去除首尾以及中间多余空格
+        StringBuilder sb = removeSpace(s);
+        // 2.反转整个字符串
+        reverseString(sb, 0, sb.length() - 1);
+        // 3.反转各个单词
+        reverseEachWord(sb);
+        return sb.toString();
+    }
+
+    private StringBuilder removeSpace(String s) {
+        // System.out.println("ReverseWords.removeSpace() called with: s = [" + s + "]");
+        int start = 0;
+        int end = s.length() - 1;
+        while (s.charAt(start) == ' ') start++;
+        while (s.charAt(end) == ' ') end--;
+        StringBuilder sb = new StringBuilder();
+        while (start <= end) {
+            char c = s.charAt(start);
+            if (c != ' ' || sb.charAt(sb.length() - 1) != ' ') {
+                sb.append(c);
+            }
+            start++;
+        }
+        // System.out.println("ReverseWords.removeSpace returned: sb = [" + sb + "]");
+        return sb;
+    }
+
+    /**
+     * 反转字符串指定区间[start, end]的字符
+     */
+    public void reverseString(StringBuilder sb, int start, int end) {
+        // System.out.println("ReverseWords.reverseString() called with: sb = [" + sb + "], start = [" + start + "], end = [" + end + "]");
+        while (start < end) {
+            char temp = sb.charAt(start);
+            sb.setCharAt(start, sb.charAt(end));
+            sb.setCharAt(end, temp);
+            start++;
+            end--;
+        }
+        // System.out.println("ReverseWords.reverseString returned: sb = [" + sb + "]");
+    }
+
+    private void reverseEachWord(StringBuilder sb) {
+        int start = 0;
+        int end = 1;
+        int n = sb.length();
+        while (start < n) {
+            while (end < n && sb.charAt(end) != ' ') {
+                end++;
+            }
+            reverseString(sb, start, end - 1);
+            start = end + 1;
+            end = start + 1;
+        }
+    }
+}
+```
+
+
+
+```java
+//双指针
+class Solution {
+    public String reverseWords(String s) {
+        StringBuilder res = new StringBuilder();
+        int start = 0 ;
+        // 去除前面的空格
+        while(s.charAt(start)==' ') start++;
+        int len = s.length();
+        // 从后往前遍历字符串 定义i，j j记录单词末尾 i为单词起始
+        for(int i=len-1 ; i>=start ; i--){
+            // 当遍历字符是空格时i,j 同步向前移动，j保存第一个不为空格的字符
+            int j = i;
+            // 当i位置不为空格时，i继续向前移动知道遇到空格
+            while(i>=0 && s.charAt(i)!=' '){
+                i--;
+            }
+            // 若i！=j 此时i代表单词首个字母前一个空格 j为单词末尾
+            if(i!=j){
+                res.append(s.substring(i+1,j+1)); // substring endindex 不包括j+1；
+                // 第一个单词前都加空格
+                if(i>start){
+                    res.append(' ');
+                }
+            }
+        }
+        return res.toString();
+    }
+}
+
+```
+
 
 
 ## 二分法
@@ -3599,7 +3783,7 @@ http://8.129.34.193:8080/ProjectEnding/
 
 
 
-## 20221-11-20
+## 2021-11-20
 
 不会做:
 
@@ -3610,3 +3794,29 @@ http://8.129.34.193:8080/ProjectEnding/
 思路不清晰:
 
 [15. 三数之和](https://leetcode-cn.com/problems/3sum/)
+
+
+
+
+
+## 2021-11-21
+
+不会做:
+
+[594. 最长和谐子序列](https://leetcode-cn.com/problems/longest-harmonious-subsequence/)
+
+[34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+
+[541. 反转字符串 II](https://leetcode-cn.com/problems/reverse-string-ii/)
+
+[剑指 Offer 05. 替换空格](https://leetcode-cn.com/problems/ti-huan-kong-ge-lcof/)
+
+[151. 翻转字符串里的单词](https://leetcode-cn.com/problems/reverse-words-in-a-string/)
+
+[28. 实现 strStr()](https://leetcode-cn.com/problems/implement-strstr/)(简单题藏着KMP偷袭我这老同志)
+
+扩充思路:
+
+[559. N 叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-n-ary-tree/)
+
+[剑指 Offer 58 - II. 左旋转字符串](https://leetcode-cn.com/problems/zuo-xuan-zhuan-zi-fu-chuan-lcof/)(API熟悉多种就行)
