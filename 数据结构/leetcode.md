@@ -3820,3 +3820,19 @@ http://8.129.34.193:8080/ProjectEnding/
 [559. N 叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-n-ary-tree/)
 
 [剑指 Offer 58 - II. 左旋转字符串](https://leetcode-cn.com/problems/zuo-xuan-zhuan-zi-fu-chuan-lcof/)(API熟悉多种就行)
+
+
+
+
+
+## 2021-11-22
+
+思路不清晰:
+
+[594. 最长和谐子序列](https://leetcode-cn.com/problems/longest-harmonious-subsequence/)
+
+
+
+不会做:
+
+[151. 翻转字符串里的单词](https://leetcode-cn.com/problems/reverse-words-in-a-string/)
