@@ -1,4 +1,4 @@
-# 数据结构
+# 	数据结构
 
 ## 排序算法
 
@@ -2859,7 +2859,114 @@ class Solution {
 
 ## 回溯算法
 
-### [77. 组合](https://leetcode-cn.com/problems/combinations/)
+#### [17. 电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/)
+
+给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。
+
+给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。
+
+
+
+```java
+class Solution {
+
+    //设置全局列表存储最后的结果
+    List<String> list = new ArrayList<>();
+
+    public List<String> letterCombinations(String digits) {
+        if (digits == null || digits.length() == 0) {
+            return list;
+        }
+        //初始对应所有的数字，为了直接对应2-9，新增了两个无效的字符串""
+        String[] numString = {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+        //迭代处理
+        backTracking(digits, numString, 0);
+        return list;
+
+    }
+
+    //每次迭代获取一个字符串，所以会设计大量的字符串拼接，所以这里选择更为高效的 StringBuild
+    StringBuilder temp = new StringBuilder();
+
+    //比如digits如果为"23",num 为0，则str表示2对应的 abc
+    public void backTracking(String digits, String[] numString, int num) {
+        //遍历全部一次记录一次得到的字符串
+        if (num == digits.length()) {
+            list.add(temp.toString());
+            return;
+        }
+        //str 表示当前num对应的字符串
+        String str = numString[digits.charAt(num) - '0'];
+        for (int i = 0; i < str.length(); i++) {
+            temp.append(str.charAt(i));
+            //c
+            backTracking(digits, numString, num + 1);
+            //剔除末尾的继续尝试
+            temp.deleteCharAt(temp.length() - 1);
+        }
+    }
+}
+```
+
+
+
+
+
+#### [40. 组合总和 II](https://leetcode-cn.com/problems/combination-sum-ii/)
+
+给定一个数组 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合。
+
+candidates 中的每个数字在每个组合中只能使用一次。
+
+注意：解集不能包含重复的组合。 
+
+```java
+class Solution {
+    List<List<Integer>> lists = new ArrayList<>();
+    Deque<Integer> deque = new LinkedList<>();
+    int sum = 0;
+
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        //为了将重复的数字都放到一起，所以先进行排序
+        Arrays.sort(candidates);
+        //加标志数组，用来辅助判断同层节点是否已经遍历
+        boolean[] flag = new boolean[candidates.length];
+        backTracking(candidates, target, 0, flag);
+        return lists;
+    }
+
+    public void backTracking(int[] arr, int target, int index, boolean[] flag) {
+        if (sum == target) {
+            lists.add(new ArrayList(deque));
+            return;
+        }
+        for (int i = index; i < arr.length && arr[i] + sum <= target; i++) {
+            //出现重复节点，同层的第一个节点已经被访问过，所以直接跳过
+            if (i > 0 && arr[i] == arr[i - 1] && !flag[i - 1]) {
+                continue;
+            }
+
+            //标志当前节点如果与下一个节点同值的话,是可以使用的,最后为什么要设置成 false呢? 因为防止同一层出现重复
+            flag[i] = true;
+
+            sum += arr[i];
+            deque.push(arr[i]);
+            //每个节点仅能选择一次，所以从下一位开始
+            backTracking(arr, target, i + 1, flag);
+            int temp = deque.pop();
+
+            //记得设置成false
+            flag[i] = false;
+
+            sum -= temp;
+        }
+    }
+}
+```
+
+
+
+#### [77. 组合](https://leetcode-cn.com/problems/combinations/)
 
 给定两个整数 `n` 和 `k`，返回范围 `[1, n]` 中所有可能的 `k` 个数的组合。
 
@@ -2886,6 +2993,122 @@ class Solution {
             combineHelper(n,k,i+1);
             path.removeLast();
         }
+    }
+}
+
+
+
+
+
+
+class Solution {
+    LinkedList<Integer> list;
+    List<List<Integer>> res;
+    public List<List<Integer>> combine(int n, int k) {
+
+        res = new ArrayList<List<Integer>>();
+        list = new LinkedList<Integer>();
+
+        dfs(n,k,1);
+        return res;
+    }
+
+
+    private void dfs(int n, int k,int startIdx){
+
+        if(list.size() == k){res.add(new ArrayList(list));return;}
+    // n - k + 1 是保证 从 [1,n-k+1]任意一个数开始都可以达到k个数的组合,如果当前已经有 x 个数,那么就可以往后推 x 个位置
+        for(int i = startIdx; i <= n - k + 1 + list.size(); i++){
+
+            list.add(i);
+            dfs(n,k,i+1);
+            list.removeLast();
+        }
+    }
+}
+```
+
+
+
+
+
+#### [131. 分割回文串](https://leetcode-cn.com/problems/palindrome-partitioning/)
+
+给你一个字符串 `s`，请你将 `s` 分割成一些子串，使每个子串都是 **回文串** 。返回 `s` 所有可能的分割方案。
+
+**回文串** 是正着读和反着读都一样的字符串。
+
+```java
+class Solution {
+    List<List<String>> lists = new ArrayList<>();
+    Deque<String> deque = new LinkedList<>();
+
+    public List<List<String>> partition(String s) {
+        backTracking(s, 0);
+        return lists;
+    }
+
+    private void backTracking(String s, int startIndex) {
+        //如果起始位置大于s的大小，说明找到了一组分割方案
+        if (startIndex >= s.length()) {
+            lists.add(new ArrayList(deque));
+            return;
+        }
+        for (int i = startIndex; i < s.length(); i++) {
+            //如果是回文子串，则记录
+            if (isPalindrome(s, startIndex, i)) {
+                String str = s.substring(startIndex, i + 1);
+                deque.addLast(str);
+            } else {
+                continue;
+            }
+            //起始位置后移，保证不重复
+            backTracking(s, i + 1);
+            deque.removeLast();
+        }
+    }
+    //判断是否是回文串
+    private boolean isPalindrome(String s, int startIndex, int end) {
+        for (int i = startIndex, j = end; i < j; i++, j--) {
+            if (s.charAt(i) != s.charAt(j)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+
+
+#### [216. 组合总和 III](https://leetcode-cn.com/problems/combination-sum-iii/)
+
+找出所有相加之和为 ***n*** 的 ***k\*** 个数的组合***。\***组合中只允许含有 1 - 9 的正整数，并且每种组合中不存在重复的数字。
+
+```java
+class Solution {
+    List<List<Integer>> res=new ArrayList<>();
+    LinkedList<Integer> path=new LinkedList<>();
+    public List<List<Integer>> combinationSum3(int k, int n) {
+        combineHelper(k, n, 1,0);
+        return res;
+    }
+
+
+    private void combineHelper(int k, int n, int startIdx,int sum){
+
+        if(path.size() > k || sum > n){return;}
+        else if(path.size() == k && sum == n){res.add(new ArrayList<>(path)); return;}
+
+        for(int i=startIdx; i <= 9 - (k - path.size()) + 1; i++){
+            path.add(i);
+            sum+=i;
+            combineHelper(k,n,i+1,sum);
+            path.removeLast();
+            sum-=i;
+        }
+
+        
     }
 }
 ```
@@ -3836,3 +4059,23 @@ http://8.129.34.193:8080/ProjectEnding/
 不会做:
 
 [151. 翻转字符串里的单词](https://leetcode-cn.com/problems/reverse-words-in-a-string/)
+
+
+
+
+
+## 2021-11-23
+
+不会做:
+
+[459. 重复的子字符串](https://leetcode-cn.com/problems/repeated-substring-pattern/)(旋转)
+
+[77. 组合](https://leetcode-cn.com/problems/combinations/)
+
+[216. 组合总和 III](https://leetcode-cn.com/problems/combination-sum-iii/)
+
+[17. 电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/)
+
+[40. 组合总和 II](https://leetcode-cn.com/problems/combination-sum-ii/)
+
+[131. 分割回文串](https://leetcode-cn.com/problems/palindrome-partitioning/)
