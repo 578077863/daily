@@ -2632,7 +2632,7 @@ class Solution {
 
 ## 栈与队列
 
-### [1047. 删除字符串中的所有相邻重复项](https://leetcode-cn.com/problems/remove-all-adjacent-duplicates-in-string/)
+#### [1047. 删除字符串中的所有相邻重复项](https://leetcode-cn.com/problems/remove-all-adjacent-duplicates-in-string/)
 
 给出由小写字母组成的字符串 S，重复项删除操作会选择两个相邻且相同的字母，并删除它们。
 
@@ -2644,7 +2644,7 @@ class Solution {
 
 
 
-### [239. 滑动窗口最大值](https://leetcode-cn.com/problems/sliding-window-maximum/)
+#### [239. 滑动窗口最大值](https://leetcode-cn.com/problems/sliding-window-maximum/)
 
 给你一个整数数组 nums，有一个大小为 k 的滑动窗口从数组的最左侧移动到数组的最右侧。你只可以看到在滑动窗口内的 k 个数字。滑动窗口每次只向右移动一位。
 
@@ -2683,7 +2683,69 @@ class Solution {
 
 
 
-### [347. 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)
+#### [225. 用队列实现栈](https://leetcode-cn.com/problems/implement-stack-using-queues/)
+
+请你仅使用两个队列实现一个后入先出（LIFO）的栈，并支持普通栈的全部四种操作（push、top、pop 和 empty）。
+
+实现 MyStack 类：
+
+void push(int x) 将元素 x 压入栈顶。
+int pop() 移除并返回栈顶元素。
+int top() 返回栈顶元素。
+boolean empty() 如果栈是空的，返回 true ；否则，返回 false 。
+
+
+注意：
+
+你只能使用队列的基本操作 —— 也就是 push to back、peek/pop from front、size 和 is empty 这些操作。
+你所使用的语言也许不支持队列。 你可以使用 list （列表）或者 deque（双端队列）来模拟一个队列 , 只要是标准的队列操作即可。
+
+
+
+```java
+class MyStack {
+
+    Queue<Integer> queue1; // 和栈中保持一样元素的队列
+    Queue<Integer> queue2; // 辅助队列
+
+    /** Initialize your data structure here. */
+    public MyStack() {
+        queue1 = new LinkedList<>();
+        queue2 = new LinkedList<>();
+    }
+    
+    /** Push element x onto stack. */
+    public void push(int x) {
+        queue2.offer(x); // 先放在辅助队列中
+        while (!queue1.isEmpty()){
+            queue2.offer(queue1.poll());
+        }
+        Queue<Integer> queueTemp;
+        queueTemp = queue1;
+        queue1 = queue2;
+        queue2 = queueTemp; // 最后交换queue1和queue2，将元素都放到queue1中
+    }
+    
+    /** Removes the element on top of the stack and returns that element. */
+    public int pop() {
+        return queue1.poll(); // 因为queue1中的元素和栈中的保持一致，所以这个和下面两个的操作只看queue1即可
+    }
+    
+    /** Get the top element. */
+    public int top() {
+        return queue1.peek();
+    }
+    
+    /** Returns whether the stack is empty. */
+    public boolean empty() {
+        return queue1.isEmpty();
+    }
+}
+```
+
+
+
+#### [347. 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)
 
 给你一个整数数组 `nums` 和一个整数 `k` ，请你返回其中出现频率前 `k` 高的元素。你可以按 **任意顺序** 返回答案。
 
@@ -2722,7 +2784,7 @@ class Solution {
 
 
 
-### [739. 每日温度](https://leetcode-cn.com/problems/daily-temperatures/)
+#### [739. 每日温度](https://leetcode-cn.com/problems/daily-temperatures/)
 
 请根据每日 `气温` 列表 `temperatures` ，请计算在每一天需要等几天才会有更高的温度。如果气温在这之后都不会升高，请在该位置用 `0` 来代替
 
@@ -2751,7 +2813,7 @@ class Solution {
 
 
 
-### [496. 下一个更大元素 I](https://leetcode-cn.com/problems/next-greater-element-i/)
+#### [496. 下一个更大元素 I](https://leetcode-cn.com/problems/next-greater-element-i/)
 
 给你两个 没有重复元素 的数组 nums1 和 nums2 ，其中nums1 是 nums2 的子集。
 
@@ -2802,7 +2864,7 @@ class Solution {
 
 
 
-### [503. 下一个更大元素 II](https://leetcode-cn.com/problems/next-greater-element-ii/)
+#### [503. 下一个更大元素 II](https://leetcode-cn.com/problems/next-greater-element-ii/)
 
 给定一个循环数组（最后一个元素的下一个元素是数组的第一个元素），输出每个元素的下一个更大元素。数字 x 的下一个更大的元素是按数组遍历顺序，这个数字之后的第一个比它更大的数，这意味着你应该循环地搜索它的下一个更大的数。如果不存在，则输出 -1。
 
@@ -3029,6 +3091,68 @@ class Solution {
 ```
 
 
+
+#### [93. 复原 IP 地址](https://leetcode-cn.com/problems/restore-ip-addresses/)
+
+有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 '.' 分隔。
+
+例如："0.1.2.201" 和 "192.168.1.1" 是 有效 IP 地址，但是 "0.011.255.245"、"192.168.1.312" 和 "192.168@1.1" 是 无效 IP 地址。
+给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入 '.' 来形成。你不能重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。
+
+```java
+class Solution {
+    List<String> result = new ArrayList<>();
+
+    public List<String> restoreIpAddresses(String s) {
+        if (s.length() > 12) return result; // 算是剪枝了
+        backTrack(s, 0, 0);
+        return result;
+    }
+
+    // startIndex: 搜索的起始位置， pointNum:添加逗点的数量
+    private void backTrack(String s, int startIndex, int pointNum) {
+        if (pointNum == 3) {// 逗点数量为3时，分隔结束
+            // 判断第四段⼦字符串是否合法，如果合法就放进result中
+            if (isValid(s,startIndex,s.length()-1)) {
+                result.add(s);
+            }
+            return;
+        }
+        for (int i = startIndex; i < s.length(); i++) {
+            if (isValid(s, startIndex, i)) {
+                s = s.substring(0, i + 1) + "." + s.substring(i + 1);    //在str的后⾯插⼊⼀个逗点
+                pointNum++;
+                backTrack(s, i + 2, pointNum);// 插⼊逗点之后下⼀个⼦串的起始位置为i+2
+                pointNum--;// 回溯
+                s = s.substring(0, i + 1) + s.substring(i + 2);// 回溯删掉逗点
+            } else {
+                break;
+            }
+        }
+    }
+
+    // 判断字符串s在左闭⼜闭区间[start, end]所组成的数字是否合法
+    private Boolean isValid(String s, int start, int end) {
+        if (start > end) {
+            return false;
+        }
+        if (s.charAt(start) == '0' && start != end) { // 0开头的数字不合法
+            return false;
+        }
+        int num = 0;
+        for (int i = start; i <= end; i++) {
+            if (s.charAt(i) > '9' || s.charAt(i) < '0') { // 遇到⾮数字字符不合法
+                return false;
+            }
+            num = num * 10 + (s.charAt(i) - '0');
+            if (num > 255) { // 如果⼤于255了不合法
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
 
 
 
@@ -4079,3 +4203,33 @@ http://8.129.34.193:8080/ProjectEnding/
 [40. 组合总和 II](https://leetcode-cn.com/problems/combination-sum-ii/)
 
 [131. 分割回文串](https://leetcode-cn.com/problems/palindrome-partitioning/)
+
+
+
+
+
+
+
+## 2021-11-24
+
+不会:
+
+[93. 复原 IP 地址](https://leetcode-cn.com/problems/restore-ip-addresses/)
+
+[131. 分割回文串](https://leetcode-cn.com/problems/palindrome-partitioning/)
+
+
+
+
+
+思路不清晰:
+
+[77. 组合](https://leetcode-cn.com/problems/combinations/)
+
+[17. 电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/)
+
+[232. 用栈实现队列](https://leetcode-cn.com/problems/implement-queue-using-stacks/)(可优化)
+
+[225. 用队列实现栈](https://leetcode-cn.com/problems/implement-stack-using-queues/)(优化)
+
+[20. 有效的括号](https://leetcode-cn.com/problems/valid-parentheses/)

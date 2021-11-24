@@ -476,7 +476,7 @@ monitor在底层，对应C++定义的objectMonitor。
 
     > 在并发情况下,线程执行到临界区代码时,会尝试一次CAS使自己成为 Owner,如果第一次CAS失败则说明抢占失败, 接着会尝试自适应自旋,在自旋期间如果成功就将Owner修改为自己,并且将count加一。执行完毕将count减一，复位owner，并且唤起entryList阻塞的线程（实现上通常唤醒队头线程，不过如果没抢到还会进入entryList队尾，通常流动性很大，不会出现饥饿）。 如果失败就进入Monitor的EntryList同步队列,并且 调用park()阻塞当前线程,底层对应系统调用**将当前线程对象映射到的操作系统线程挂起，并让出CPU**
     >
-    > owner线程调用wait，则进入waitSet并阻塞（同样对应park调用），同时让出CPU。只有其他线程调用notify它才会被唤醒，而且唤醒后进入entryList，当owner被复位后，同entryList其他线程进行竞争，当称为owner将从原执行位置继续向下执行。
+    > owner线程调用wait，则进入waitSet并阻塞（同样对应park调用），同时让出CPU。只有其他线程调用notify它才会被唤醒，而且唤醒后进入entryList，当owner被复位后，同entryList其他线程进行竞争，当成为owner将从原执行位置继续向下执行。
 
 
 
@@ -577,7 +577,7 @@ JDK6之后的优化是:
 
 
 
-重量级锁之所以重是因为底层依赖OS的mutex互斥量实现，而依赖堆中的monitor对象（Hotspot对应objectMonitor实现）。
+重量级锁之所以重是因为底层依赖OS的mutex互斥量实现，依赖堆中的monitor对象（Hotspot对应objectMonitor实现）。
 当然了，如果单线程下，或者不存在“竞争明显”的情况下，没有线程会被挂起，也不会出现进程切换，但是仍然需要为使用的锁对象创建绑定的monitor并且频繁CAS设置owner。用户态与内核态的切换主要是由于park()底层涉及系统调用导致的，如果CPU上下文切换的时间接近同步代码的执行时间，那么就显得效率很低下。
 
 
