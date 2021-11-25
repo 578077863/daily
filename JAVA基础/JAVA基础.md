@@ -190,9 +190,11 @@ final
 >
 > 变量加上final就意味着成为常量
 >
-> *方法加上final就代表只能使用,无法重载这个得查查*
+> *方法加上final就代表只能使用,无法被重写*
 
 finally
+
+[(40条消息) java基础复习（三）：深入理解关键字final及内部类_❀神花❀的博客-CSDN博客](https://blog.csdn.net/qq_44793993/article/details/116793477)
 
 > 是java的一种异常处理机制,无论是否出现异常都会执行finally中的代码,所以一般非内存资源的关闭都是放在finally中
 

@@ -3655,6 +3655,56 @@ class MyHashMap {
 
 
 
+
+
+#### [343. 整数拆分](https://leetcode-cn.com/problems/integer-break/)
+
+给定一个正整数 *n*，将其拆分为**至少**两个正整数的和，并使这些整数的乘积最大化。 返回你可以获得的最大乘积
+
+```java
+class Solution {
+    public int integerBreak(int n) {
+        //为什么 2~3都要单独列出来呢? 因为>=4的时候切开后的乘积都能大于 当前数, <=3的时候都是小于当前数,所以担心绳子本身的长度<=3,造成结果错误,如果绳子长度大于3,那<=3的部分就可以不切,这样取得的值最大
+        if(n==3) return 2;
+        if(n==2) return 1; 
+        int[] dp = new int[n+1];
+		for(int i=1;i<=n;i++){ //base case
+            dp[i]=i;
+        }
+		for(int i=2;i<=n;i++) {//状态
+			for(int j=1;j<i;j++) {//选择
+				//if(i+j<=n)
+				dp[i]=Math.max(dp[i-j]*dp[j], dp[i]);
+			}
+		}
+		return dp[n];
+    }
+}
+
+// 作者：priate1
+// 链接：https://leetcode-cn.com/problems/integer-break/solution/java-dong-tai-gui-hua-xin-shou-you-hao-h-dqll/
+// 来源：力扣（LeetCode）
+// 著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+
+class Solution {
+    public int integerBreak(int n) {
+        if(n <= 3) return n - 1;
+        int a = n / 3, b = n % 3;
+        if(b == 0) return (int)Math.pow(3, a);
+        if(b == 1) return (int)Math.pow(3, a - 1) * 4;
+        return (int)Math.pow(3, a) * 2;
+    }
+}
+
+作者：jyd
+链接：https://leetcode-cn.com/problems/integer-break/solution/343-zheng-shu-chai-fen-tan-xin-by-jyd/
+来源：力扣（LeetCode）
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+```
+
+
+
 ### [746. 使用最小花费爬楼梯](https://leetcode-cn.com/problems/min-cost-climbing-stairs/)
 
 数组的每个下标作为一个阶梯，第 i 个阶梯对应着一个非负数的体力花费值 cost[i]（下标从 0 开始）。
@@ -4233,3 +4283,25 @@ http://8.129.34.193:8080/ProjectEnding/
 [225. 用队列实现栈](https://leetcode-cn.com/problems/implement-stack-using-queues/)(优化)
 
 [20. 有效的括号](https://leetcode-cn.com/problems/valid-parentheses/)
+
+
+
+
+
+## 2021-11-25
+
+不会做:
+
+[28. 实现 strStr()](https://leetcode-cn.com/problems/implement-strstr/)(KMP , 滑动窗口)
+
+[93. 复原 IP 地址](https://leetcode-cn.com/problems/restore-ip-addresses/)
+
+[剑指 Offer 13. 机器人的运动范围](https://leetcode-cn.com/problems/ji-qi-ren-de-yun-dong-fan-wei-lcof/)
+
+[343. 整数拆分](https://leetcode-cn.com/problems/integer-break/)(掌握动态规划 , 直接用数学结论)
+
+[剑指 Offer 14- I. 剪绳子](https://leetcode-cn.com/problems/jian-sheng-zi-lcof/)(优化)
+
+[剑指 Offer 14- II. 剪绳子 II](https://leetcode-cn.com/problems/jian-sheng-zi-ii-lcof/)(贪心)
+
+[剑指 Offer 15. 二进制中1的个数](https://leetcode-cn.com/problems/er-jin-zhi-zhong-1de-ge-shu-lcof/)(两种做法)
