@@ -56,6 +56,124 @@ public class QuickSort {
 
 
 
+#### [28. 实现 strStr()](https://leetcode-cn.com/problems/implement-strstr/)
+
+实现 strStr() 函数。
+
+给你两个字符串 haystack 和 needle ，请你在 haystack 字符串中找出 needle 字符串出现的第一个位置（下标从 0 开始）。如果不存在，则返回  -1 。
+
+ 
+
+说明：
+
+当 needle 是空字符串时，我们应当返回什么值呢？这是一个在面试中很好的问题。
+
+对于本题而言，当 needle 是空字符串时我们应当返回 0 。这与 C 语言的 strstr() 以及 Java 的 indexOf() 定义相符。
+
+```java
+class Solution {
+
+    private void getNext(int[] next, String s){
+
+        int j = 0;
+        next[0] = j;
+
+        for(int i = 1; i < s.length(); i++){
+
+
+            while( j >=1 && s.charAt(i) != s.charAt(j)){
+                j = next[j-1];//指向前后缀公共部分外的后一个
+            }
+
+            // a b a b  c  0 0 1 2
+
+            if(s.charAt(i) == s.charAt(j)){
+                j++;
+            }
+
+
+            next[i] = j;
+        }
+    }
+    public int strStr(String haystack, String needle) {
+
+        if(needle.length() == 0){
+            return 0;
+        }
+
+        int[] next = new int[needle.length()];
+        getNext(next,needle);
+
+        int j = 0;
+        for(int i = 0; i < haystack.length(); i++){
+            while(j >= 1 && haystack.charAt(i) != needle.charAt(j)){
+                j = next[j-1];
+            }
+
+            if(haystack.charAt(i) == needle.charAt(j)){
+                j++;
+            }
+
+            if(j == needle.length()){
+                return (i-needle.length()+1);
+            }
+        }
+
+        return -1;
+    }
+}
+
+
+
+
+
+
+
+class Solution {
+    public int strStr(String haystack, String needle) {
+        if(needle == null || needle.length() == 0){return 0;}
+        int[] next = new int[needle.length()];
+
+        int j = 0;
+        getNext(next,needle);
+        for(int i = 0; i < haystack.length(); i++){
+            while(j >= 1 && haystack.charAt(i) != needle.charAt(j)){
+                j = next[j-1];
+            }
+
+            if(haystack.charAt(i) == needle.charAt(j)){j++;}
+
+            if(j == needle.length()){
+                return i-needle.length() + 1;
+            }
+        }
+
+        return -1;
+    }
+
+
+    private void getNext(int[] next,String needle){
+
+        int j = 0;
+        next[0] = j;
+        for(int i = 1; i < needle.length(); i++){
+
+            while(j >=1 && needle.charAt(i) != needle.charAt(j)){
+                j = next[j-1];
+            }
+
+            if(needle.charAt(j) == needle.charAt(i)){
+                j++;
+            }
+
+            next[i] = j;
+        }
+    }
+}
+```
+
+
+
 #### [剑指 Offer 58 - II. 左旋转字符串](https://leetcode-cn.com/problems/zuo-xuan-zhuan-zi-fu-chuan-lcof/)
 
 ```java
@@ -1684,30 +1802,30 @@ class Solution {
 百度百科中最近公共祖先的定义为：“对于有根树 T 的两个节点 p、q，最近公共祖先表示为一个节点 x，满足 x 是 p、q 的祖先且 x 的深度尽可能大（一个节点也可以是它自己的祖先）。”
 
  ```java
- /**
-  * Definition for a binary tree node.
-  * public class TreeNode {
-  *     int val;
-  *     TreeNode left;
-  *     TreeNode right;
-  *     TreeNode(int x) { val = x; }
-  * }
-  */
- class Solution {
-     public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
-         
-         1.
-         if(root == null || root == p || root == q) return root;
-         
-         TreeNode left = lowestCommonAncestor(root.left, p, q);
-         TreeNode right = lowestCommonAncestor(root.right, p, q);
-         
-         //由于 left == null && root !=p && !=q 所以只可能出现在 right中
-         if(left == null) return right;
-         if(right == null) return left;
-         return root;
-     }
- 
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        
+        1.
+        if(root == null || root == p || root == q) return root;
+        
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+        
+        //由于 left == null && root !=p && !=q 所以只可能出现在 right中
+        if(left == null) return right;
+        if(right == null) return left;
+        return root;
+    }
+
  ```
 
 
@@ -2640,6 +2758,23 @@ class Solution {
 
 在完成所有重复项删除操作后返回最终的字符串。答案保证唯一。
 
+```java
+class Solution {
+    public String removeDuplicates(String S) {
+        char[] s = S.toCharArray();
+        int top = -1;
+        for (int i = 0; i < S.length(); i++) {
+            if (top == -1 || s[top] != s[i]) {
+                s[++top] = s[i];
+            } else {
+                top--;
+            }
+        }
+        return String.valueOf(s, 0, top + 1);
+    }
+}
+```
+
 
 
 
@@ -3304,6 +3439,34 @@ class Solution {
 
 
 
+
+
+#### [剑指 Offer 13. 机器人的运动范围](https://leetcode-cn.com/problems/ji-qi-ren-de-yun-dong-fan-wei-lcof/)
+
+地上有一个m行n列的方格，从坐标 [0,0] 到坐标 [m-1,n-1] 。一个机器人从坐标 [0, 0] 的格子开始移动，它每次可以向左、右、上、下移动一格（不能移动到方格外），也不能进入行坐标和列坐标的数位之和大于k的格子。例如，当k为18时，机器人能够进入方格 [35, 37] ，因为3+5+3+7=18。但它不能进入方格 [35, 38]，因为3+5+3+8=19。请问该机器人能够到达多少个格子？
+
+```java
+class Solution {
+    public int movingCount(int m, int n, int k) {
+        boolean[][] visited = new boolean[m][n];
+        return dfs(0, 0, m, n, k, visited);
+    }
+
+    private int dfs(int i, int j, int m, int n, int k, boolean visited[][]) {
+        if (i < 0 || i >= m || j < 0 || j >= n || (i/10 + i%10 + j/10 + j%10) > k || visited[i][j]) {
+            return 0;
+        }
+        visited[i][j] = true;
+        return dfs(i + 1, j, m, n, k, visited) + dfs(i - 1, j, m, n, k, visited) + 
+               dfs(i, j + 1, m, n, k, visited) + dfs(i, j - 1, m, n, k, visited) + 1;
+    }
+}
+```
+
+
+
+
+
 ### [剑指 Offer 29. 顺时针打印矩阵](https://leetcode-cn.com/problems/shun-shi-zhen-da-yin-ju-zhen-lcof/)
 
 输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字。
@@ -3356,7 +3519,55 @@ class Solution {
 
 
 
+#### [150. 逆波兰表达式求值](https://leetcode-cn.com/problems/evaluate-reverse-polish-notation/)
 
+根据 逆波兰表示法，求表达式的值。
+
+有效的算符包括 +、-、*、/ 。每个运算对象可以是整数，也可以是另一个逆波兰表达式。
+
+ 
+
+说明：
+
+整数除法只保留整数部分。
+给定逆波兰表达式总是有效的。换句话说，表达式总会得出有效数值且不存在除数为 0 的情况。
+
+```java
+class Solution {
+    public int evalRPN(String[] tokens) {
+        Deque<Integer> stack=new LinkedList<>();
+
+        for(String token : tokens){
+            char c=token.charAt(0);
+
+            if(!isOperation(token)){
+                stack.push(valueOf(token));
+            }else if(c == '+'){
+                stack.push(stack.pop() + stack.pop());
+            }else if(c == '-'){
+                stack.push(-stack.pop() + stack.pop());
+            }else if(c == '*'){
+                stack.push(stack.pop() * stack.pop());
+            }else{
+                int num1=stack.pop();
+                int num2=stack.pop();
+                stack.push(num2/num1);
+            }
+        }
+
+        return stack.pop();
+    }
+
+    private boolean isOperation(String s){
+        return s.length() == 1 && (s.charAt(0) < '0' || s.charAt(0) >'9');
+    }
+
+
+    private int valueOf(String s){
+        return Integer.valueOf(s);
+    }
+}
+```
 
 
 
@@ -3716,7 +3927,6 @@ class Solution {
  
 
 ```java
-
 //我自己的思路
 class Solution {
     public int minCostClimbingStairs(int[] cost) {
@@ -4305,3 +4515,59 @@ http://8.129.34.193:8080/ProjectEnding/
 [剑指 Offer 14- II. 剪绳子 II](https://leetcode-cn.com/problems/jian-sheng-zi-ii-lcof/)(贪心)
 
 [剑指 Offer 15. 二进制中1的个数](https://leetcode-cn.com/problems/er-jin-zhi-zhong-1de-ge-shu-lcof/)(两种做法)
+
+
+
+
+
+## 2021-11-27
+
+不会做:
+
+[93. 复原 IP 地址](https://leetcode-cn.com/problems/restore-ip-addresses/)
+
+[28. 实现 strStr()](https://leetcode-cn.com/problems/implement-strstr/)(KMP , 滑动窗口)
+
+[剑指 Offer 14- II. 剪绳子 II](https://leetcode-cn.com/problems/jian-sheng-zi-ii-lcof/)(贪心)
+
+[1047. 删除字符串中的所有相邻重复项](https://leetcode-cn.com/problems/remove-all-adjacent-duplicates-in-string/)
+
+[150. 逆波兰表达式求值](https://leetcode-cn.com/problems/evaluate-reverse-polish-notation/)
+
+[239. 滑动窗口最大值](https://leetcode-cn.com/problems/sliding-window-maximum/)
+
+
+
+思路不清晰:
+
+[剑指 Offer 13. 机器人的运动范围](https://leetcode-cn.com/problems/ji-qi-ren-de-yun-dong-fan-wei-lcof/)
+
+[343. 整数拆分](https://leetcode-cn.com/problems/integer-break/)(掌握动态规划 , 直接用数学结论)
+
+[剑指 Offer 14- I. 剪绳子](https://leetcode-cn.com/problems/jian-sheng-zi-lcof/)(动态规划)
+
+[20. 有效的括号](https://leetcode-cn.com/problems/valid-parentheses/)(学着怎么优雅点)
+
+
+
+
+
+
+
+## 2021-11-28
+
+不会做:
+
+[93. 复原 IP 地址](https://leetcode-cn.com/problems/restore-ip-addresses/)(已经无语了,今天做明天忘,无限循环)
+
+
+
+思路不清晰:
+
+[239. 滑动窗口最大值](https://leetcode-cn.com/problems/sliding-window-maximum/)
+
+
+
+## 2021-11-29
+
+[438. 找到字符串中所有字母异位词](https://leetcode-cn.com/problems/find-all-anagrams-in-a-string/)
