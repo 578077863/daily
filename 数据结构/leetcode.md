@@ -2453,7 +2453,7 @@ class Solution {
 
 
 
-### [135. 分发糖果](https://leetcode-cn.com/problems/candy/)
+#### [135. 分发糖果](https://leetcode-cn.com/problems/candy/)
 
 老师想给孩子们分发糖果，有 N 个孩子站成了一条直线，老师会根据每个孩子的表现，预先给他们评分。
 
@@ -2498,7 +2498,7 @@ class Solution {
 
 
 
-### [406. 根据身高重建队列](https://leetcode-cn.com/problems/queue-reconstruction-by-height/)
+#### [406. 根据身高重建队列](https://leetcode-cn.com/problems/queue-reconstruction-by-height/)
 
 ```java
 class Solution {
@@ -2523,7 +2523,7 @@ class Solution {
 
 
 
-### [435. 无重叠区间](https://leetcode-cn.com/problems/non-overlapping-intervals/)
+#### [435. 无重叠区间](https://leetcode-cn.com/problems/non-overlapping-intervals/)
 
 给定一个区间的集合，找到需要移除区间的最小数量，使剩余区间互不重叠。
 
@@ -2556,6 +2556,71 @@ class Solution {
 ```
 
 
+
+#### [438. 找到字符串中所有字母异位词](https://leetcode-cn.com/problems/find-all-anagrams-in-a-string/)
+
+给定两个字符串 s 和 p，找到 s 中所有 p 的 异位词 的子串，返回这些子串的起始索引。不考虑答案输出的顺序。
+
+异位词 指由相同字母重排列形成的字符串（包括相同的字符串）。
+
+```java
+// class Solution {
+//     public List<Integer> findAnagrams(String s, String p) {
+//         int n = s.length(), m = p.length();
+//         List<Integer> res = new ArrayList<>();
+//         if(n < m) return res;
+//         int[] pCnt = new int[26];
+//         int[] sCnt = new int[26];
+//         for(int i = 0; i < m; i++){
+//             pCnt[p.charAt(i) - 'a']++;
+//             sCnt[s.charAt(i) - 'a']++;
+//         }
+//         if(Arrays.equals(sCnt, pCnt)){
+//             res.add(0);
+//         }
+//         for(int i = m; i < n; i++){
+//             sCnt[s.charAt(i - m) - 'a']--;
+//             sCnt[s.charAt(i) - 'a']++;
+//             if(Arrays.equals(sCnt, pCnt)){
+//                 res.add(i - m + 1);
+//             }
+//         }
+//         return res;
+//     }
+// }
+
+
+class Solution {
+    public List<Integer> findAnagrams(String s, String p) {
+        int n = s.length(), m = p.length();
+        List<Integer> res = new ArrayList<>();
+        if(n < m) return res;
+
+        int[] pCnt = new int[26];
+        int[] sCnt = new int[26];
+
+        for(int i = 0; i < m; i++){
+            pCnt[p.charAt(i) - 'a'] ++;
+        }
+
+        int left = 0;
+        for(int right = 0; right < n; right++){
+            int curRight = s.charAt(right) - 'a';
+            sCnt[curRight]++;
+            //多了就减到相等就行
+            while(sCnt[curRight] > pCnt[curRight]){
+                int curLeft = s.charAt(left) - 'a';
+                sCnt[curLeft]--;
+                left++;
+            }
+            if(right - left + 1 == m){
+                res.add(left);
+            }
+        }
+        return res;
+    }
+}
+```
 
 
 
@@ -4571,3 +4636,17 @@ http://8.129.34.193:8080/ProjectEnding/
 ## 2021-11-29
 
 [438. 找到字符串中所有字母异位词](https://leetcode-cn.com/problems/find-all-anagrams-in-a-string/)
+
+
+
+## 2021-11-30
+
+[5. 最长回文子串](https://leetcode-cn.com/problems/longest-palindromic-substring/)
+
+[438. 找到字符串中所有字母异位词](https://leetcode-cn.com/problems/find-all-anagrams-in-a-string/)
+
+[144. 二叉树的前序遍历](https://leetcode-cn.com/problems/binary-tree-preorder-traversal/)(迭代法做,别递归,还有一个Mirrors方法,理解一下) &&  [114. 二叉树展开为链表](https://leetcode-cn.com/problems/flatten-binary-tree-to-linked-list/)
+
+[31. 下一个排列](https://leetcode-cn.com/problems/next-permutation/)
+
+[49. 字母异位词分组](https://leetcode-cn.com/problems/group-anagrams/)
