@@ -4775,3 +4775,11 @@ http://8.129.34.193:8080/ProjectEnding/
 [5. 最长回文子串](https://leetcode-cn.com/problems/longest-palindromic-substring/)
 
 [93. 复原 IP 地址](https://leetcode-cn.com/problems/restore-ip-addresses/)
+
+
+
+
+
+## 2021-12-2
+
+[506. 相对名次](https://leetcode-cn.com/problems/relative-ranks/)(不熟悉)
