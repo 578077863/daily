@@ -2805,6 +2805,47 @@ class Solution {
         return sum;
     }
 }
+
+
+
+
+class Solution {
+    public int largestSumAfterKNegations(int[] nums, int k) {
+        if(nums.length == 1){
+            int t=k%2;
+            if(t == 0){
+                return nums[0];
+            }else{
+                return -nums[0];
+            }
+        }
+
+        Arrays.sort(nums);
+
+        int index=0;
+
+        for(int i=0;i<k;i++){
+
+            // 这里的 nums.length-1 和下面的 if搭配,保证了index最后停留的数的绝对值是最小的
+            if(index < nums.length-1 && nums[index] < 0){
+                nums[index]=-nums[index];
+
+                if(nums[index] >= Math.abs(nums[index + 1])){
+                    index++;
+                }
+                continue;
+            }
+
+            nums[index]=-nums[index];
+        }
+
+        int sum=0;
+        for(Integer i:nums){
+            sum+=i;
+        }
+        return sum;
+    }
+}
 ```
 
 
@@ -4783,3 +4824,13 @@ http://8.129.34.193:8080/ProjectEnding/
 ## 2021-12-2
 
 [506. 相对名次](https://leetcode-cn.com/problems/relative-ranks/)(不熟悉)
+
+
+
+## 2021-12-3
+
+[剑指 Offer 14- II. 剪绳子 II](https://leetcode-cn.com/problems/jian-sheng-zi-ii-lcof/)
+
+[剑指 Offer 38. 字符串的排列](https://leetcode-cn.com/problems/zi-fu-chuan-de-pai-lie-lcof/)
+
+[1005. K 次取反后最大化的数组和](https://leetcode-cn.com/problems/maximize-sum-of-array-after-k-negations/)
