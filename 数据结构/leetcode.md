@@ -4834,3 +4834,28 @@ http://8.129.34.193:8080/ProjectEnding/
 [剑指 Offer 38. 字符串的排列](https://leetcode-cn.com/problems/zi-fu-chuan-de-pai-lie-lcof/)
 
 [1005. K 次取反后最大化的数组和](https://leetcode-cn.com/problems/maximize-sum-of-array-after-k-negations/)
+
+
+
+## 2021-12-4
+
+不会做:
+
+[79. 单词搜索](https://leetcode-cn.com/problems/word-search/)
+
+[13. 罗马数字转整数](https://leetcode-cn.com/problems/roman-to-integer/)
+
+[4. 寻找两个正序数组的中位数](https://leetcode-cn.com/problems/median-of-two-sorted-arrays/)
+
+[136. 只出现一次的数字](https://leetcode-cn.com/problems/single-number/)
+
+[剑指 Offer 56 - I. 数组中数字出现的次数](https://leetcode-cn.com/problems/shu-zu-zhong-shu-zi-chu-xian-de-ci-shu-lcof/)
+
+
+
+思路需要纠正一点:
+
+[剑指 Offer 38. 字符串的排列](https://leetcode-cn.com/problems/zi-fu-chuan-de-pai-lie-lcof/)
+
+[1005. K 次取反后最大化的数组和](https://leetcode-cn.com/problems/maximize-sum-of-array-after-k-negations/)
+
