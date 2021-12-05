@@ -3333,6 +3333,89 @@ class Solution {
 
 
 
+
+
+
+
+#### [79. 单词搜索](https://leetcode-cn.com/problems/word-search/)
+
+给定一个 m x n 二维字符网格 board 和一个字符串单词 word 。如果 word 存在于网格中，返回 true ；否则，返回 false 。
+
+单词必须按照字母顺序，通过相邻的单元格内的字母构成，其中“相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母不允许被重复使用。
+
+```java
+class Solution {
+    private boolean[][] used;
+    private int row, col;
+    private char[][] board;
+    private char[] ws;
+    private int[][] direction = new int[][] {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
+
+    public boolean exist(char[][] board, String word) {
+        this.row = board.length;
+        this.col = board[0].length;
+        this.used = new boolean[row][col];
+        for (boolean[] u : used) {
+            Arrays.fill(u, false);
+        }
+
+        this.board = board;
+        this.ws = word.toCharArray();
+
+        for (int i = 0; i < row; ++i) {
+            for (int j = 0; j < col; ++j) {
+                if (board[i][j] == ws[0]) {
+                    used[i][j] = true;
+                    if (dfs(i, j, 1)) {
+                        return true;
+                    } else {
+                        used[i][j] = false;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean dfs(int i, int j, int depth) {
+        if (depth == ws.length) {
+            return true;
+        }
+
+        for (int[] d : direction) {
+            int newX = i + d[0];
+            int newY = j + d[1];
+            // 剪枝
+            if (! inArea(newX, newY)) {
+                continue;
+            }
+            // 剪枝
+            if (used[newX][newY]) {
+                continue;
+            }
+            // 剪枝
+            if (board[newX][newY] != ws[depth]) {
+                continue;
+            }
+
+            used[newX][newY] = true;
+            if (dfs(newX, newY, depth + 1)) {
+                return true;
+            } else {
+                used[newX][newY] = false;
+            }
+        }
+        return false;
+    }
+
+    private boolean inArea(int x, int y) {
+        return x >= 0 && x < this.row && y >= 0 && y < this.col;
+    }
+}
+```
+
+
+
 #### [93. 复原 IP 地址](https://leetcode-cn.com/problems/restore-ip-addresses/)
 
 有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 '.' 分隔。
@@ -3480,6 +3563,55 @@ class Solution {
 
 
 
+
+
+
+
+## 位运算
+
+
+
+#### [剑指 Offer 56 - I. 数组中数字出现的次数](https://leetcode-cn.com/problems/shu-zu-zhong-shu-zi-chu-xian-de-ci-shu-lcof/)
+
+一个整型数组 `nums` 里除两个数字之外，其他数字都出现了两次。请写程序找出这两个只出现一次的数字。要求时间复杂度是O(n)，空间复杂度是O(1)。
+
+ 
+
+```java
+class Solution {
+    public int[] singleNumbers(int[] nums) {
+        //因为相同的数字异或为0，任何数字与0异或结果是其本身。
+        //所以遍历异或整个数组最后得到的结果就是两个只出现一次的数字异或的结果：即 z = x ^ y
+        int z = 0;  
+        for(int i : nums) z ^= i;
+        //我们根据异或的性质可以知道：z中至少有一位是1，否则x与y就是相等的。
+        //我们通过一个辅助变量m来保存z中哪一位为1.（可能有多个位都为1，我们找到最低位的1即可）。
+        //举个例子：z = 10 ^ 2 = 1010 ^ 0010 = 1000,第四位为1.
+        //我们将m初始化为1，如果（z & m）的结果等于0说明z的最低为是0
+        //我们每次将m左移一位然后跟z做与操作，直到结果不为0.
+        //此时m应该等于1000，同z一样，第四位为1.
+        int m = 1;
+        while((z & m) == 0) m <<= 1;
+        //我们遍历数组，将每个数跟m进行与操作，结果为0的作为一组，结果不为0的作为一组
+        //例如对于数组：[1,2,10,4,1,4,3,3]，我们把每个数字跟1000做与操作，可以分为下面两组：
+        //nums1存放结果为0的: [1, 2, 4, 1, 4, 3, 3]
+        //nums2存放结果不为0的: [10] (碰巧nums2中只有一个10，如果原数组中的数字再大一些就不会这样了)
+        //此时我们发现问题已经退化为数组中有一个数字只出现了一次
+        //分别对nums1和nums2遍历异或就能得到我们预期的x和y
+        int x = 0, y = 0;
+        for(int i : nums) {
+            //这里我们是通过if...else将nums分为了两组，一边遍历一遍异或。
+            //跟我们创建俩数组nums1和nums2原理是一样的。
+            if((i & m) == 0) x ^= i;
+            else y ^= i;
+        }
+        return new int[]{x, y};
+    }
+}
+```
+
+
+
 ## 其他
 
 ### [7. 整数反转](https://leetcode-cn.com/problems/reverse-integer/)
@@ -3515,7 +3647,7 @@ class Solution {
 
 
 
-### [9. 回文数](https://leetcode-cn.com/problems/palindrome-number/)
+#### [9. 回文数](https://leetcode-cn.com/problems/palindrome-number/)
 
 给你一个整数 x ，如果 x 是一个回文整数，返回 true ；否则，返回 false 。
 
@@ -3541,6 +3673,52 @@ class Solution {
         
     }
 }
+```
+
+
+
+
+
+#### [13. 罗马数字转整数](https://leetcode-cn.com/problems/roman-to-integer/)
+
+
+
+```java
+class Solution {
+    public int romanToInt(String s) {
+        int sum = 0;
+        int preNum = getValue(s.charAt(0));
+        for(int i = 1;i < s.length(); i ++) {
+            int num = getValue(s.charAt(i));
+            if(preNum < num) {
+                sum -= preNum;
+            } else {
+                sum += preNum;
+            }
+            preNum = num;
+        }
+        sum += preNum;
+        return sum;
+    }
+    
+    private int getValue(char ch) {
+        switch(ch) {
+            case 'I': return 1;
+            case 'V': return 5;
+            case 'X': return 10;
+            case 'L': return 50;
+            case 'C': return 100;
+            case 'D': return 500;
+            case 'M': return 1000;
+            default: return 0;
+        }
+    }
+}
+
+作者：donespeak
+链接：https://leetcode-cn.com/problems/roman-to-integer/solution/yong-shi-9993nei-cun-9873jian-dan-jie-fa-by-donesp/
+来源：力扣（LeetCode）
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 ```
 
 
@@ -4131,7 +4309,7 @@ class Solution {
 
 
 
-### [746. 使用最小花费爬楼梯](https://leetcode-cn.com/problems/min-cost-climbing-stairs/)
+#### [746. 使用最小花费爬楼梯](https://leetcode-cn.com/problems/min-cost-climbing-stairs/)
 
 数组的每个下标作为一个阶梯，第 i 个阶梯对应着一个非负数的体力花费值 cost[i]（下标从 0 开始）。
 
@@ -4859,3 +5037,26 @@ http://8.129.34.193:8080/ProjectEnding/
 
 [1005. K 次取反后最大化的数组和](https://leetcode-cn.com/problems/maximize-sum-of-array-after-k-negations/)
 
+
+
+## 2021-12-5
+
+[79. 单词搜索](https://leetcode-cn.com/problems/word-search/)
+
+[剑指 Offer 62. 圆圈中最后剩下的数字](https://leetcode-cn.com/problems/yuan-quan-zhong-zui-hou-sheng-xia-de-shu-zi-lcof/)
+
+
+
+
+
+思路不清晰:
+
+[剑指 Offer 56 - I. 数组中数字出现的次数](https://leetcode-cn.com/problems/shu-zu-zhong-shu-zi-chu-xian-de-ci-shu-lcof/)
+
+[13. 罗马数字转整数](https://leetcode-cn.com/problems/roman-to-integer/)
+
+
+
+挑战题:
+
+[4. 寻找两个正序数组的中位数](https://leetcode-cn.com/problems/median-of-two-sorted-arrays/)
