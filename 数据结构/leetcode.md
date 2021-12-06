@@ -5060,3 +5060,25 @@ http://8.129.34.193:8080/ProjectEnding/
 挑战题:
 
 [4. 寻找两个正序数组的中位数](https://leetcode-cn.com/problems/median-of-two-sorted-arrays/)
+
+
+
+
+
+## 2021-12-6
+
+[50. Pow(x, n)](https://leetcode-cn.com/problems/powx-n/)
+
+[剑指 Offer 57 - II. 和为s的连续正数序列](https://leetcode-cn.com/problems/he-wei-sde-lian-xu-zheng-shu-xu-lie-lcof/)
+
+[剑指 Offer 45. 把数组排成最小的数](https://leetcode-cn.com/problems/ba-shu-zu-pai-cheng-zui-xiao-de-shu-lcof/)
+
+[372. 超级次方](https://leetcode-cn.com/problems/super-pow/)
+
+
+
+
+
+思路不清晰:
+
+[剑指 Offer 16. 数值的整数次方](https://leetcode-cn.com/problems/shu-zhi-de-zheng-shu-ci-fang-lcof/)(两种)
