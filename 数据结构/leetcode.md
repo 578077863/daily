@@ -2,6 +2,100 @@
 
 ## 排序算法
 
+### 希尔排序
+
+
+
+### 冒泡排序
+
+依次比较数组中相邻两个元素的大小,若 a[j] > a[j+1],则交换两个元素,两两都比较一遍称为一轮冒泡,结果是让最大的元素排至最后
+
+重复以上步骤,直到整个数组有序
+
+```java
+for(int j = 0; j < a.length - 1; j++){
+    boolean swapped = false;
+    
+    for(int i = 0; i < a.length - 1 - j; i++){
+        if(a[i] > a[i + 1]){
+            swap(a, i, i + 1);
+            swapped = true;
+        }
+    }
+    
+    if(!swapped){
+        break;
+    }
+}
+
+
+//改进
+
+int n = a.length - 1;
+while(true){
+    int last = 0;//表示最后一次交换索引位置
+    for(int i = 0; i < n; i++){
+        if(a[i] > a[i + 1]){
+            swap(a, i, i + 1);
+            last = i;
+        }
+    }
+    
+    n = last;// n == 1 ,means a[0] need to compare to a[1]
+    if(n == 0){
+        break;
+    }
+}
+```
+
+
+
+
+
+### 插入排序(稳定排序)
+
+```java
+// i 代表待插入元素的索引
+for(int i = 1; i < a.length; i++){
+    int t = a[i];
+    int j = i - 1;//代表已排序区域的元素索引
+    
+    while(j >= 0){
+        if(t < a[j]){
+            a[j + 1] = a[j];
+        }else{
+            break;
+        }
+        j--;
+    }
+    
+    a[j + 1] = t;
+}
+```
+
+
+
+### 选择排序(不稳定排序)
+
+```java
+for(int i = 0; i < a.length - 1; i++){
+    int s = i;
+    for(int j = s + 1; j < a.length; j++){
+        if(a[s] > a[j]){
+            s = j;
+        }
+    }
+    
+    if(s != i){
+        swap(a,s,i);
+    }
+}
+```
+
+
+
+
+
 ### 快排
 
 思想就是 : 选取某一个数作为基准值,从左往右寻找比该数小的 , 从右往左寻找比该数大的,然后交换.   
@@ -5082,3 +5176,13 @@ http://8.129.34.193:8080/ProjectEnding/
 思路不清晰:
 
 [剑指 Offer 16. 数值的整数次方](https://leetcode-cn.com/problems/shu-zhi-de-zheng-shu-ci-fang-lcof/)(两种)
+
+
+
+
+
+## 2021-12-7
+
+[剑指 Offer 59 - I. 滑动窗口的最大值](https://leetcode-cn.com/problems/hua-dong-chuang-kou-de-zui-da-zhi-lcof/)\
+
+[450. 删除二叉搜索树中的节点](https://leetcode-cn.com/problems/delete-node-in-a-bst/)
