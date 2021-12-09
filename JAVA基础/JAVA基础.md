@@ -757,6 +757,8 @@ sleep在任何地方都可以使用
 
 ## 异常
 
+[(42条消息) JVM是如何处理异常的?_feather(猎羽)-CSDN博客_jvm 异常表](https://blog.csdn.net/feather_wch/article/details/82630303)
+
 什么是异常?
 
 Java的异常是对非正常事件的一种抽象,具体的异常信息通常都会创建一个异常实例,用于保存这异常的元信息
