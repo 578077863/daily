@@ -5218,3 +5218,11 @@ http://8.129.34.193:8080/ProjectEnding/
 [剑指 Offer 66. 构建乘积数组](https://leetcode-cn.com/problems/gou-jian-cheng-ji-shu-zu-lcof/)
 
 [剑指 Offer 60. n个骰子的点数](https://leetcode-cn.com/problems/nge-tou-zi-de-dian-shu-lcof/)
+
+
+
+
+
+## 2021-12-10
+
+[748. 最短补全词](https://leetcode-cn.com/problems/shortest-completing-word/)

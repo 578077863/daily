@@ -921,3 +921,17 @@ Java线程状态和操作系统线程有什么不同？
 现在的时分多任务操作系统架构 通常都是用 时间片轮转的方式进行抢占式调度
 
 通常 Java的线程状态是服务于监控的,由于线程的上下文切换速度对于人来说非常快,那么区分ready 与 running 就没什么意义
+
+
+
+
+
+
+
+## CopyOnWriteArrayList
+
+[(42条消息) CopyOnWriteArrayList原理，优缺点，使用场景_JobShow裁员加班实况-微信小程序-CSDN博客_copyonwritearraylist使用场景](https://blog.csdn.net/u010002184/article/details/90452918)
+
+写时复制原理,和redis的rdb的cow一样
+
+[(42条消息) Redis-关于RDB的几点顿悟-COW（Copy On Write）_Muscleape的博客-CSDN博客_cow redis](https://blog.csdn.net/Muscleape/article/details/105670481)
