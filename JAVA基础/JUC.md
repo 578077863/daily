@@ -1012,3 +1012,182 @@ Java线程状态和操作系统线程有什么不同？
 写时复制原理,和redis的rdb的cow一样
 
 [(42条消息) Redis-关于RDB的几点顿悟-COW（Copy On Write）_Muscleape的博客-CSDN博客_cow redis](https://blog.csdn.net/Muscleape/article/details/105670481)
+
+
+
+
+
+
+
+## -- - - - - 
+
+
+
+## 线程的创建方式
+
+1. 实现Runnable接口
+
+2. 继承Thread类
+
+   继承Thread类每次都要创建,销毁线程,用Runnable可以利用线程池,减少创建销毁的损耗
+
+   单继承和多继承的关系
+
+   ```java
+   class MyThread extends Thread{
+       //子类重写父类run方法
+   }
+   
+   //Thread类的run方法,所以才有实现Runnable接口的类放进 new Thread(class implements Runnable);
+   public void run(){
+       if(target != null){
+           target.run();
+       }
+   }
+   ```
+
+   
+
+   所以准确的讲,创建线程只有一种方式就是构造Thread类,而实现线程的执行单元有两种方式
+
+   **<u>总结</u>**：从共享资源来看，Runnable接口更适合（因为都是同一个Runnable实例），从继承角度看，Runnable更适合，因为接口可以多继承，类只能单继承，这样不利于扩展
+
+
+
+## 如果一个线程两次调用start（）方法会抛出异常，因为start会对线程状态进行检查，再引出线程状态
+
+## start方法才是启动多线程，run不是
+
+
+
+## 如何正确停止线程
+
+原理介绍： 使用interrupt来通知，而不是强制。因为通知停止的线程可能对要停止线程执行的业务不熟悉，所以由停止线程来完成停止前的处理工作更好
+
+
+
+三种情况：
+
+1. 通常线程会在什么情况下停止普通情况
+
+   在while循环中查看当前线程的isterrupt标记位，存在就跳出循环
+
+2. 线程可能被阻塞
+
+   sleep wait都是需要try catch（InterruptedException e），做到线程在阻塞中依然能够响应中断
+
+3. 如果线程在每次迭代后都阻塞
+
+   sleep和interrupted放在同一个循环时，interrupted有点多余，因为大部分时间都是在sleep，但我个人觉得还是得存在
+
+   try如果包裹while，while循环会中断，因为抛出异常，而如果while循环包括try，则抛出异常会被catch住，while循环不会中断
+
+   如果线程响应了interrupted，就会把其标志位清除
+
+   > run方法无法抛出异常，只能在run里面try（）catch
+   >
+   > 5-13说明了为什么即使线程处理 sleep或wait状态也能被唤醒，底层就是调用了unpark方法
+
+
+
+## 错误的停止方法
+
+stop方法会释放掉所有的monitor
+
+suspend不释放锁，挂起
+
+如何处理：
+
+5-15讲的可以
+
+![image-20211217162549273](images/JUC/image-20211217162549273.png)
+
+
+
+![image-20211217162714620](images/JUC/image-20211217162714620.png)
+
+第二个问题：针对特定情况使用特定方法，如ReentrantLock的可打断方法
+
+
+
+## 停止线程相关重要函数解析
+
+1. 判断是否已被中断相关方法
+
+   static boolean interrupted（）
+
+   boolean isInterrupted（）
+
+   Thread.interrupted（）的目的对象（谁调用它的，显示谁，不用管它在哪个对象中，Main函数调用另一线程创建的该对象，也是显示主线程的状态）
+
+
+
+
+
+
+
+
+
+wait释放锁,如果当前持有多把锁,只会释放当前synchronzed的锁
+
+状态转化的特殊情况:
+
+Object.wait()状态刚被唤醒时,通常不能立刻抢到Monitor锁,那就会从Waiting先进入Blocked状态,抢到锁后再转换到Runnable状态(官方文档)
+
+如果发生异常,可以直接跳到终止Terminated状态,不必再遵循路径
+
+
+
+用wait和notify实现生产者消费者模式
+
+两个线程交替打印0到100，用 count & 1判断当前是奇数还是偶数
+
+用notify和wait
+
+
+
+为什么wait（）需要在同步代码块内使用，而sleep不用
+
+> 主要是防止线程执行wait之前cpu时间片轮到另一个线程，另一个线程提前把notify给执行了，导致下一次进行wait的时候没办法唤醒，sleep唤醒主要还是依赖自身
+
+
+
+为什么线程通信的方法wait（），notify（）和notifyAll（）被定义在Object类，而sleep定义在Thread类里
+
+> 以synchrnozed为例子，如果锁对象实际上是对象头关联的Monitor的owner为当前线程，如果定义在Thread类里，那么当前线程就没办法拿到多个对象的锁
+
+
+
+调用Thread.wait()，线程退出前会自动调用notify
+
+
+
+suspend（）和resume（）来阻塞线程可以吗？
+
+> 用notify和wait代替
+
+
+
+
+
+## 面试题
+
+![image-20211218205821902](images/JUC/image-20211218205821902.png)
+
+## join
+
+![image-20211218211651020](images/JUC/image-20211218211651020.png)
+
+thread对象执行完run就会唤醒
+
+下面的thread.join() 和 synchronized（thread）{thread.wait()}其实是等价的，因为 thread对象run执行完会自动进行一个notifyall操作
+
+![image-20211218211957815](images/JUC/image-20211218211957815.png)
+
+join（）无参数 waitting，有参数TIMED_WAITING
+
+
+
+## yield
+
+释放当前cpu时间片，但JVM不保证遵循
