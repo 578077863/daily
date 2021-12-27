@@ -1254,6 +1254,50 @@ class Solution {
 
 
 
+
+
+#### [剑指 Offer 63. 股票的最大利润](https://leetcode-cn.com/problems/gu-piao-de-zui-da-li-run-lcof/)
+
+假设把某股票的价格按照时间先后顺序存储在数组中，请问买卖该股票一次可能获得的最大利润是多少？
+
+```java
+class Solution {
+    public int maxProfit(int[] prices) {
+
+/**
+int maxProfit(vector<int>& prices){
+    int len = prices.size();
+    if(len <= 1)
+        return 0;
+    
+    int left = 0, right = 0, maxP = 0;
+    while(right < len){
+        if((prices[right]-prices[left]) < 0){
+            left = right;
+            right++;
+            continue;
+        }
+        maxP = max(maxP, prices[right]-prices[left]);
+        right++;
+    }
+    return maxP;
+}
+ */
+        int cost=Integer.MAX_VALUE,profit=0;
+
+        for(int price : prices){
+
+            cost=Math.min(cost,price);
+            profit=Math.max(profit,price-cost);
+        }
+
+        return profit;
+    }
+}
+```
+
+
+
 ## 链表
 
 
