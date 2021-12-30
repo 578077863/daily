@@ -3161,6 +3161,101 @@ class Solution {
 
 ## 单调栈
 
+#### [155. 最小栈](https://leetcode-cn.com/problems/min-stack/)
+
+```java
+/**
+ * 栈中存储数组实现
+ * 执行用时：6 ms, 在所有 Java 提交中击败了97.10%的用户
+ * 内存消耗：40.3 MB, 在所有 Java 提交中击败了63.92%的用户
+ * */
+class MinStack {
+
+    // 数组栈, [当前值, 当前最小值]
+    private Stack<int[]> stack = new Stack<>();
+
+    public MinStack() {
+
+    }
+
+    public void push(int x) {
+        if (stack.isEmpty()){
+            stack.push(new int[]{x, x});
+        }else {
+            stack.push(new int[]{x, Math.min(x, stack.peek()[1])});
+        }
+    }
+
+    public void pop() {
+        stack.pop();
+    }
+
+    public int top() {
+        return stack.peek()[0];
+    }
+
+    public int getMin() {
+        return stack.peek()[1];
+    }
+}
+
+
+
+/**
+ * 通过自定义链表实现，每个节点存储当前值，当前最小值，和它前面的节点
+ * 执行用时：5 ms, 在所有 Java 提交中击败了99.84%的用户
+ * 内存消耗：40.4 MB, 在所有 Java 提交中击败了47.08%的用户
+ * */
+class MinStack {
+
+    private Node node;
+
+    public MinStack() {
+
+    }
+
+    public void push(int x) {
+        if (node == null){
+            node = new Node(x, x);
+        }else {
+            // node = new Node(x, Math.min(x, node.min), node);
+            Node next = new Node(x, Math.min(x, node.min));
+            next.prev = node;
+            node = next;
+        }
+    }
+
+    public void pop() {
+        node = node.prev;
+    }
+
+    public int top() {
+        return node.val;
+    }
+
+    public int getMin() {
+        return node.min;
+    }
+
+    private class Node {
+        int val;
+        int min;
+        Node prev;
+
+        private Node(int val, int min){
+            this.val = val;
+            this.min = min;
+        }
+
+        private Node(int val, int min, Node prev){
+            this.val = val;
+            this.min = min;
+            this.prev = prev;
+        }
+    }
+}
+```
+
 
 
 #### [739. 每日温度](https://leetcode-cn.com/problems/daily-temperatures/)
@@ -5365,3 +5460,11 @@ http://8.129.34.193:8080/ProjectEnding/
 [96. 不同的二叉搜索树](https://leetcode-cn.com/problems/unique-binary-search-trees/)（直接背公式，这题证明搞不懂）
 
 [剑指 Offer 20. 表示数值的字符串](https://leetcode-cn.com/problems/biao-shi-shu-zhi-de-zi-fu-chuan-lcof/)
+
+
+
+## 2021-12-30
+
+[155. 最小栈](https://leetcode-cn.com/problems/min-stack/)（API熟悉点，还有另一种解法）
+
+[160. 相交链表](https://leetcode-cn.com/problems/intersection-of-two-linked-lists/)
