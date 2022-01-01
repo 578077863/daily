@@ -5468,3 +5468,11 @@ http://8.129.34.193:8080/ProjectEnding/
 [155. 最小栈](https://leetcode-cn.com/problems/min-stack/)（API熟悉点，还有另一种解法）
 
 [160. 相交链表](https://leetcode-cn.com/problems/intersection-of-two-linked-lists/)
+
+
+
+## 2021-12-31
+
+[169. 多数元素](https://leetcode-cn.com/problems/majority-element/)
+
+[448. 找到所有数组中消失的数字](https://leetcode-cn.com/problems/find-all-numbers-disappeared-in-an-array/)（除了占位这种思想，其他的可以看看）
