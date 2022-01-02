@@ -880,6 +880,54 @@ class Solution {
 
 
 
+#### [141. 环形链表](https://leetcode-cn.com/problems/linked-list-cycle/)
+
+给你一个链表的头节点 head ，判断链表中是否有环。
+
+如果链表中有某个节点，可以通过连续跟踪 next 指针再次到达，则链表中存在环。 为了表示给定链表中的环，评测系统内部使用整数 pos 来表示链表尾连接到链表中的位置（索引从 0 开始）。如果 pos 是 -1，则在该链表中没有环。注意：pos 不作为参数进行传递，仅仅是为了标识链表的实际情况。
+
+如果链表中存在环，则返回 true 。 否则，返回 false 。
+
+
+
+```java
+/**
+ * Definition for singly-linked list.
+ * class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) {
+ *         val = x;
+ *         next = null;
+ *     }
+ * }
+ */
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+        if(head == null){return false;}
+        ListNode slow = head;
+        ListNode fast = head;
+
+        while(fast != null){
+            fast = fast.next;
+            if(fast != null){
+                fast = fast.next;
+            }
+
+            if(fast == slow){
+                return true;
+            }
+            slow = slow.next;
+        }
+        return false;
+    }
+}
+
+https://leetcode-cn.com/problems/linked-list-cycle/solution/yi-wen-gao-ding-chang-jian-de-lian-biao-wen-ti-h-2/
+```
+
+
+
 #### [283. 移动零](https://leetcode-cn.com/problems/move-zeroes/)
 
    给定一个数组 nums，编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序。
@@ -5476,3 +5524,21 @@ http://8.129.34.193:8080/ProjectEnding/
 [169. 多数元素](https://leetcode-cn.com/problems/majority-element/)
 
 [448. 找到所有数组中消失的数字](https://leetcode-cn.com/problems/find-all-numbers-disappeared-in-an-array/)（除了占位这种思想，其他的可以看看）
+
+
+
+## 2022-1-1
+
+[338. 比特位计数](https://leetcode-cn.com/problems/counting-bits/)
+
+[96. 不同的二叉搜索树](https://leetcode-cn.com/problems/unique-binary-search-trees/)
+
+[160. 相交链表](https://leetcode-cn.com/problems/intersection-of-two-linked-lists/)
+
+
+
+## 2022-1-2
+
+[461. 汉明距离](https://leetcode-cn.com/problems/hamming-distance/)
+
+[234. 回文链表](https://leetcode-cn.com/problems/palindrome-linked-list/)

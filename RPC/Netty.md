@@ -43,3 +43,10 @@
 ### Handler与Pipeline
 
 ### ByteBuf
+
+
+
+
+
+## 水平和边缘触发
+
