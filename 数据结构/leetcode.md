@@ -1472,7 +1472,74 @@ class Solution {
 
 
 
+#### [234. 回文链表](https://leetcode-cn.com/problems/palindrome-linked-list/)
 
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+            //  使用双指针
+    public boolean isPalindrome(ListNode head) {
+        if (head == null || head.next == null) {
+            return true;
+        }
+        //之所以要设置flag，是因为通过本题解法后，
+        //链表的前半部分结构被翻转了，为了不破坏原有结构，还要对其进行复原操作
+        boolean flag = true;
+        //  快慢指针的起点均在head处，快指针步长为 2，慢指针步长为 1
+        ListNode fast = head;
+        ListNode slow = head;
+        //  保存在fast走完后，slow的上一个结点
+        ListNode pre = head;
+        //  设置ppre指针，便于翻转
+        ListNode ppre = null;
+
+        while (fast != null && fast.next != null) {
+            pre = slow;
+            slow = slow.next;
+            fast = fast.next.next;
+            pre.next = ppre;
+            ppre = pre;
+        }
+        //  当链表长度为偶数时，fast最终必为 null
+        //  当链表长度为奇数时，当fast.next为null时，fast刚好是最后的节点
+
+        ListNode tempR = slow;  //记录翻转部分的下一个结点,这样无论奇偶都能还原
+
+
+        if (fast != null) {
+            slow = slow.next;
+        }
+        ListNode tempL = pre;   //记录中间经过翻转的前部分指针
+        
+        while (pre != null && slow != null) {
+            if (pre.val != slow.val) {
+                flag = false;
+                break;
+            }
+            pre = pre.next;
+            slow = slow.next;
+        }
+        //  将已经翻转的链表复原
+        while (tempL != null) {
+            //  设置一个next域，即保存前一个结点
+            ListNode tempLL = tempL.next;
+            tempL.next = tempR;
+            tempR = tempL;
+            tempL = tempLL;
+        }
+        return flag;
+    }
+}
+```
 
 
 
@@ -4133,6 +4200,16 @@ class Solution {
 
 
 
+
+
+#### [128. 最长连续序列](https://leetcode-cn.com/problems/longest-consecutive-sequence/)
+
+```java
+https://leetcode-cn.com/problems/longest-consecutive-sequence/solution/xiao-bai-lang-ha-xi-ji-he-ha-xi-biao-don-j5a2/
+```
+
+
+
 #### [150. 逆波兰表达式求值](https://leetcode-cn.com/problems/evaluate-reverse-polish-notation/)
 
 根据 逆波兰表示法，求表达式的值。
@@ -5542,3 +5619,11 @@ http://8.129.34.193:8080/ProjectEnding/
 [461. 汉明距离](https://leetcode-cn.com/problems/hamming-distance/)
 
 [234. 回文链表](https://leetcode-cn.com/problems/palindrome-linked-list/)
+
+
+
+## 2022-1-4
+
+[234. 回文链表](https://leetcode-cn.com/problems/palindrome-linked-list/)
+
+[128. 最长连续序列](https://leetcode-cn.com/problems/longest-consecutive-sequence/)(四种解法)
