@@ -1350,7 +1350,7 @@ int maxProfit(vector<int>& prices){
 
 
 
-### [19. 删除链表的倒数第 N 个结点](https://leetcode-cn.com/problems/remove-nth-node-from-end-of-list/)
+#### [19. 删除链表的倒数第 N 个结点](https://leetcode-cn.com/problems/remove-nth-node-from-end-of-list/)
 
 给你一个链表，删除链表的倒数第 `n` 个结点，并且返回链表的头结点。
 
@@ -1416,7 +1416,54 @@ class Solution {
 
 
 
-### [203. 移除链表元素](https://leetcode-cn.com/problems/remove-linked-list-elements/)
+
+
+#### [142. 环形链表 II](https://leetcode-cn.com/problems/linked-list-cycle-ii/)
+
+给定一个链表，返回链表开始入环的第一个节点。 如果链表无环，则返回 null。
+
+如果链表中有某个节点，可以通过连续跟踪 next 指针再次到达，则链表中存在环。 为了表示给定链表中的环，评测系统内部使用整数 pos 来表示链表尾连接到链表中的位置（索引从 0 开始）。如果 pos 是 -1，则在该链表中没有环。注意：pos 不作为参数进行传递，仅仅是为了标识链表的实际情况。
+
+不允许修改 链表。
+
+```java
+/**
+ * Definition for singly-linked list.
+ * class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) {
+ *         val = x;
+ *         next = null;
+ *     }
+ * }
+ */
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast) {// 有环
+                ListNode index1 = fast;
+                ListNode index2 = head;
+                // 两个指针，从头结点和相遇结点，各走一步，直到相遇，相遇点即为环入口
+                while (index1 != index2) {
+                    index1 = index1.next;
+                    index2 = index2.next;
+                }
+                return index1;
+            }
+        }
+        return null;
+    }
+}
+```
+
+
+
+#### [203. 移除链表元素](https://leetcode-cn.com/problems/remove-linked-list-elements/)
 
 给你一个链表的头节点 `head` 和一个整数 `val` ，请你删除链表中所有满足 `Node.val == val` 的节点，并返回 **新的头节点** 。
 
@@ -1543,7 +1590,45 @@ class Solution {
 
 
 
-### [707. 设计链表](https://leetcode-cn.com/problems/design-linked-list/)
+
+
+#### [287. 寻找重复数](https://leetcode-cn.com/problems/find-the-duplicate-number/)
+
+给定一个包含 n + 1 个整数的数组 nums ，其数字都在 1 到 n 之间（包括 1 和 n），可知至少存在一个重复的整数。
+
+假设 nums 只有 一个重复的整数 ，找出 这个重复的数 。
+
+你设计的解决方案必须不修改数组 nums 且只用常量级 O(1) 的额外空间。
+
+```java
+class Solution {
+    public int findDuplicate(int[] nums) {
+
+        int slow = nums[0];
+        int fast = nums[nums[0]];
+
+        while(slow != fast){
+            slow = nums[slow];
+            fast = nums[nums[fast]];
+        }
+
+        slow = 0;
+        while(slow != fast){
+            slow = nums[slow];
+            fast = nums[fast];
+        }
+
+        return slow;
+    }
+}
+
+
+//通过 n -> f(n) -> n 的方式建立链表，然后应用234d
+```
+
+
+
+#### [707. 设计链表](https://leetcode-cn.com/problems/design-linked-list/)
 
 ```java
 //单链表
@@ -5627,3 +5712,11 @@ http://8.129.34.193:8080/ProjectEnding/
 [234. 回文链表](https://leetcode-cn.com/problems/palindrome-linked-list/)
 
 [128. 最长连续序列](https://leetcode-cn.com/problems/longest-consecutive-sequence/)(四种解法)
+
+
+
+## 2022-1-10
+
+[142. 环形链表 II](https://leetcode-cn.com/problems/linked-list-cycle-ii/)
+
+[287. 寻找重复数](https://leetcode-cn.com/problems/find-the-duplicate-number/)
