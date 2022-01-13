@@ -144,7 +144,77 @@ public class QuickSort {
 
 
 
+
+
+#### [215. 数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/)
+
+给定整数数组 nums 和整数 k，请返回数组中第 k 个最大的元素。
+
+请注意，你需要找的是数组排序后的第 k 个最大的元素，而不是第 k 个不同的元素。
+
+```java
+class Solution {
+    public int findKthLargest(int[] nums, int k) {
+        int heapSize = nums.length;
+        buildMaxHeap(nums, heapSize);
+        //建堆完毕后，nums【0】为最大元素。逐个删除堆顶元素，直到删除了k-1个。
+        for (int i = nums.length - 1; i >= nums.length - k + 1; --i) {
+            //先将堆的最后一个元素与堆顶元素交换，由于此时堆的性质被破坏，需对此时的根节点进行向下调整操作。
+            swap(nums, 0, i);
+            //相当于删除堆顶元素，此时长度变为nums.length-2。即下次循环的i
+            --heapSize;
+            maxHeapify(nums, 0, heapSize);
+        }
+        return nums[0];
+    }
+
+    public void buildMaxHeap(int[] a, int heapSize) {
+        //从最后一个父节点位置开始调整每一个节点的子树。数组长度为heasize，因此最后一个节点的位置为heapsize-1，所以父节点的位置为heapsize-1-1/2。
+        for (int i = (heapSize-2)/ 2; i >= 0; --i) {
+            maxHeapify(a, i, heapSize);
+        } 
+    }
+
+    public void maxHeapify(int[] a, int i, int heapSize) {      //调整当前结点和子节点的顺序。
+        //left和right表示当前父节点i的两个左右子节点。
+        int left = i * 2 + 1, right = i * 2 + 2, largest = i;
+        //如果左子点在数组内，且比当前父节点大，则将最大值的指针指向左子点。
+        if (left < heapSize && a[left] > a[largest]) {
+            largest = left;/''/
+        } 
+        //如果右子点在数组内，且比当前父节点大，则将最大值的指针指向右子点。
+        if (right < heapSize && a[right] > a[largest]) {
+            largest = right;
+        }
+        //如果最大值的指针不是父节点，则交换父节点和当前最大值指针指向的子节点。
+        if (largest != i) {
+            swap(a, i, largest);
+            //由于交换了父节点和子节点，因此可能对子节点的子树造成影响，所以对子节点的子树进行调整。
+            maxHeapify(a, largest, heapSize);
+        }
+    }
+
+    public void swap(int[] a, int i, int j) {
+        int temp = a[i];
+        a[i] = a[j];
+        a[j] = temp;
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
 ## 字符串
+
+
 
 
 
@@ -1833,6 +1903,64 @@ class Solution {
         else if(pre.val>=root.val) return false;
         pre=root;
         return isValidBST(root.right);
+    }
+}
+```
+
+
+
+#### [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+
+```java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    private Map<Integer, Integer> indexMap;
+
+    public TreeNode myBuildTree(int[] preorder, int[] inorder, int preorder_left, int preorder_right, int inorder_left, int inorder_right) {
+        if (preorder_left > preorder_right) {
+            return null;
+        }
+
+        // 前序遍历中的第一个节点就是根节点
+        int preorder_root = preorder_left;
+        // 在中序遍历中定位根节点
+        int inorder_root = indexMap.get(preorder[preorder_root]);
+        
+        // 先把根节点建立出来
+        TreeNode root = new TreeNode(preorder[preorder_root]);
+        // 得到左子树中的节点数目
+        int size_left_subtree = inorder_root - inorder_left;
+        // 递归地构造左子树，并连接到根节点
+        // 先序遍历中「从 左边界+1 开始的 size_left_subtree」个元素就对应了中序遍历中「从 左边界 开始到 根节点定位-1」的元素
+        root.left = myBuildTree(preorder, inorder, preorder_left + 1, preorder_left + size_left_subtree, inorder_left, inorder_root - 1);
+        // 递归地构造右子树，并连接到根节点
+        // 先序遍历中「从 左边界+1+左子树节点数目 开始到 右边界」的元素就对应了中序遍历中「从 根节点定位+1 到 右边界」的元素
+        root.right = myBuildTree(preorder, inorder, preorder_left + size_left_subtree + 1, preorder_right, inorder_root + 1, inorder_right);
+        return root;
+    }
+
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        int n = preorder.length;
+        // 构造哈希映射，帮助我们快速定位根节点
+        indexMap = new HashMap<Integer, Integer>();
+        for (int i = 0; i < n; i++) {
+            indexMap.put(inorder[i], i);
+        }
+        return myBuildTree(preorder, inorder, 0, n - 1, 0, n - 1);
     }
 }
 ```
@@ -4765,6 +4893,52 @@ public class Solution {
 
 
 
+
+
+
+
+#### [139. 单词拆分](https://leetcode-cn.com/problems/word-break/)
+
+```java
+class Solution {
+    public boolean wordBreak(String s, List<String> wordDict) {
+
+        char[] chars = s.toCharArray();
+
+        boolean[] dp = new boolean[chars.length + 1];
+
+        dp[0] = true;
+
+        for(int i = 1; i <= chars.length; i++){
+            for(String word : wordDict){
+                
+                //word 一定 <= 当前的背包
+                if(word.length() > i){continue;}
+
+                //这一步是已经找到了满足要求的物品,直接break即可
+                if(dp[i]){break;}
+
+                boolean flag = true;
+
+                for(int j = 0; j < word.length(); j++){
+                                            // 由于 i 是从 1 开始的,所以这里无需进行一个 +1 操作
+                    if(word.charAt(j) == chars[i - word.length() + j]){continue;}
+                    flag = false;
+                    break;
+                }
+
+                //这个就是公式了
+                dp[i] = dp[i - word.length()] && flag;
+            }
+        }
+
+        return dp[chars.length];
+    }
+}
+```
+
+
+
 #### [343. 整数拆分](https://leetcode-cn.com/problems/integer-break/)
 
 给定一个正整数 *n*，将其拆分为**至少**两个正整数的和，并使这些整数的乘积最大化。 返回你可以获得的最大乘积
@@ -4809,6 +4983,69 @@ class Solution {
 链接：https://leetcode-cn.com/problems/integer-break/solution/343-zheng-shu-chai-fen-tan-xin-by-jyd/
 来源：力扣（LeetCode）
 著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+```
+
+
+
+
+
+
+
+#### [494. 目标和](https://leetcode-cn.com/problems/target-sum/)
+
+给你一个整数数组 nums 和一个整数 target 。
+
+向数组中的每个整数前添加 '+' 或 '-' ，然后串联起所有整数，可以构造一个 表达式 ：
+
+例如，nums = [2, 1] ，可以在 2 之前添加 '+' ，在 1 之前添加 '-' ，然后串联起来得到表达式 "+2-1" 。
+返回可以通过上述方法构造的、运算结果等于 target 的不同 表达式 的数目。
+
+```java
+原问题等同于： 找到nums一个正子集和一个负子集，使得总和等于target
+
+我们假设P是正子集，N是负子集 例如： 假设nums = [1, 2, 3, 4, 5]，target = 3，一个可能的解决方案是+1-2+3-4+5 = 3 这里正子集P = [1, 3, 5]和负子集N = [2, 4]
+
+那么让我们看看如何将其转换为子集求和问题：
+
+                  sum(P) - sum(N) = target
+sum(P) + sum(N) + sum(P) - sum(N) = target + sum(P) + sum(N)
+                       2 * sum(P) = target + sum(nums)
+因此，原来的问题已转化为一个求子集的和问题： 找到nums的一个子集 P，使得sum(P) = (target + sum(nums)) / 2
+
+请注意，上面的公式已经证明target + sum(nums)必须是偶数，否则输出为0 java代码示例：
+
+        int sum = 0;
+        for (int n : nums)
+            sum += n;
+        return sum < s || (s + sum) % 2 > 0 ? 0 : subsetSum(nums, (s + sum) >>> 1); 
+    }   
+
+    public int subsetSum(int[] nums, int s) {
+        int[] dp = new int[s + 1]; 
+        dp[0] = 1;
+        for (int n : nums)
+            for (int i = s; i >= n; i--)
+                dp[i] += dp[i - n]; 
+        return dp[s];
+        
+        
+class Solution {
+    public int findTargetSumWays(int[] nums, int target) {
+        int sum = 0;
+        for (int i = 0; i < nums.length; i++) sum += nums[i];
+        if ((target + sum) % 2 != 0) return 0;
+        int size = (target + sum) / 2;
+        if(size < 0) size = -size;
+        int[] dp = new int[size + 1];
+        dp[0] = 1;
+        for (int i = 0; i < nums.length; i++) {
+            for (int j = size; j >= nums[i]; j--) {
+                dp[j] += dp[j - nums[i]];
+            }
+        }
+        return dp[size];
+    }
+}       
 ```
 
 
@@ -5715,8 +5952,40 @@ http://8.129.34.193:8080/ProjectEnding/
 
 
 
-## 2022-1-10
+## 2022-1-9
 
 [142. 环形链表 II](https://leetcode-cn.com/problems/linked-list-cycle-ii/)
 
 [287. 寻找重复数](https://leetcode-cn.com/problems/find-the-duplicate-number/)
+
+
+
+## 2022-1-10
+
+[105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+
+
+
+## 2022-1-11
+
+[48. 旋转图像](https://leetcode-cn.com/problems/rotate-image/)
+
+[139. 单词拆分](https://leetcode-cn.com/problems/word-break/)
+
+
+
+## 2022-1-12
+
+[416. 分割等和子集](https://leetcode-cn.com/problems/partition-equal-subset-sum/)
+
+[1049. 最后一块石头的重量 II](https://leetcode-cn.com/problems/last-stone-weight-ii/)
+
+
+
+
+
+## 2022-1-13
+
+[494. 目标和](https://leetcode-cn.com/problems/target-sum/)
+
+[215. 数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/)
