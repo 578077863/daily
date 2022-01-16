@@ -4899,6 +4899,10 @@ public class Solution {
 
 #### [139. 单词拆分](https://leetcode-cn.com/problems/word-break/)
 
+给你一个字符串 s 和一个字符串列表 wordDict 作为字典。请你判断是否可以利用字典中出现的单词拼接出 s 。
+
+注意：不要求字典中出现的单词全部都使用，并且字典中的单词可以重复使用。
+
 ```java
 class Solution {
     public boolean wordBreak(String s, List<String> wordDict) {
@@ -5082,7 +5086,94 @@ class Solution {
 
 
 
-http://8.129.34.193:8080/ProjectEnding/
+## 岛屿问题
+
+[岛屿类问题的通用解法、DFS 遍历框架 - 岛屿数量 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/number-of-islands/solution/dao-yu-lei-wen-ti-de-tong-yong-jie-fa-dfs-bian-li-/)
+
+#### [200. 岛屿数量](https://leetcode-cn.com/problems/number-of-islands/)
+
+给你一个由 '1'（陆地）和 '0'（水）组成的的二维网格，请你计算网格中岛屿的数量。
+
+岛屿总是被水包围，并且每座岛屿只能由水平方向和/或竖直方向上相邻的陆地连接形成。
+
+此外，你可以假设该网格的四条边均被水包围。
+
+```java
+class Solution {
+
+    public int numIslands(char[][] grid) {
+        int res = 0;
+
+        for(int i = 0; i < grid.length; i++){
+
+            for(int j = 0; j < grid[0].length; j++){
+
+                if(grid[i][j] == '1'){
+                    dfs(grid, i, j);
+                    res++;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    private void dfs(char[][] grid, int row, int col){
+
+        // except the wrong solution
+        if(row >= grid.length || col >= grid[0].length || row < 0 || col < 0){
+            return;
+        }
+
+        if(grid[row][col] != '1'){
+            return;
+        }
+
+        grid[row][col] = '2';
+
+        dfs(grid, row - 1, col);
+        dfs(grid, row + 1, col);
+        dfs(grid, row, col - 1);
+        dfs(grid, row, col + 1);
+    }
+}
+```
+
+
+
+#### [463. 岛屿的周长](https://leetcode-cn.com/problems/island-perimeter/)
+
+
+
+#### [695. 岛屿的最大面积](https://leetcode-cn.com/problems/max-area-of-island/)
+
+
+
+
+
+#### [827. 最大人工岛](https://leetcode-cn.com/problems/making-a-large-island/)
+
+
+
+
+
+
+
+## 背包问题
+
+[【宫水三叶】一题四解 : 「DFS」&「记忆化搜索」&「全量 DP」&「优化 DP」 - 目标和 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/target-sum/solution/gong-shui-san-xie-yi-ti-si-jie-dfs-ji-yi-et5b/)
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -5997,3 +6088,25 @@ http://8.129.34.193:8080/ProjectEnding/
 [152. 乘积最大子数组](https://leetcode-cn.com/problems/maximum-product-subarray/)
 
 [198. 打家劫舍](https://leetcode-cn.com/problems/house-robber/)
+
+
+
+## 2022-1-15
+
+[200. 岛屿数量](https://leetcode-cn.com/problems/number-of-islands/)
+
+[463. 岛屿的周长](https://leetcode-cn.com/problems/island-perimeter/)
+
+[695. 岛屿的最大面积](https://leetcode-cn.com/problems/max-area-of-island/)
+
+[827. 最大人工岛](https://leetcode-cn.com/problems/making-a-large-island/)
+
+
+
+
+
+## 2022-1-16
+
+[207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
+
+[5980. 将字符串拆分为若干长度为 k 的组](https://leetcode-cn.com/problems/divide-a-string-into-groups-of-size-k/)
