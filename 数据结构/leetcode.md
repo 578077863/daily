@@ -518,6 +518,62 @@ class Solution {
 
 
 
+
+
+
+
+
+
+#### [2138. 将字符串拆分为若干长度为 k 的组](https://leetcode-cn.com/problems/divide-a-string-into-groups-of-size-k/)
+
+字符串 s 可以按下述步骤划分为若干长度为 k 的组：
+
+第一组由字符串中的前 k 个字符组成，第二组由接下来的 k 个字符串组成，依此类推。每个字符都能够成为 某一个 组的一部分。
+对于最后一组，如果字符串剩下的字符 不足 k 个，需使用字符 fill 来补全这一组字符。
+注意，在去除最后一个组的填充字符 fill（如果存在的话）并按顺序连接所有的组后，所得到的字符串应该是 s 。
+
+给你一个字符串 s ，以及每组的长度 k 和一个用于填充的字符 fill ，按上述步骤处理之后，返回一个字符串数组，该数组表示 s 分组后 每个组的组成情况 。
+
+```java
+class Solution {
+    public String[] divideString(String s, int k, char fill) {
+
+        //find the number of array
+        int time = s.length() % k == 0? s.length() / k : s.length() / k + 1;
+        String[] strs = new String[time];
+
+        int j = 0;
+        for(int i = 0; i < time - 1; i++){
+            strs[i] = s.substring(j, j + k);
+            j = j + k;
+        }
+
+        //leave the last array
+        int leaveNum = k - (s.length() - 1 - j + 1);
+
+        if(leaveNum == 0){
+            strs[time - 1] = s.substring(j, j + k);
+        }else{
+            StringBuilder sb = new StringBuilder(s.substring(j, s.length()));
+            while(leaveNum > 0){
+                sb.append(fill);
+                leaveNum--;
+            }
+
+            strs[time - 1] = sb.toString();
+        }
+
+        return strs;    
+    }
+}
+```
+
+
+
+
+
+
+
 ## 二分法
 
 二分用这个模板就不会出错了。满足条件的都写`l = mid`或者`r = mid`，mid首先写成`l + r >> 1`，如果满足条件选择的是`l = mid`，那么mid那里就加个1，写成`l + r + 1 >> 1`。然后就是else对应的写法`l = mid`对应`r = mid - 1`，`r = mid`对应`l = mid + 1`。跟着y总学的，嘿嘿。
@@ -1530,6 +1586,162 @@ public class Solution {
     }
 }
 ```
+
+
+
+
+
+
+
+
+
+#### [148. 排序链表](https://leetcode-cn.com/problems/sort-list/)
+
+给你链表的头结点 `head` ，请将其按 **升序** 排列并返回 **排序后的链表** 。
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode sortList(ListNode head) {
+
+        List<ListNode> list = new ArrayList<>();
+
+        while(head != null){
+            list.add(head);
+            head = head.next;
+        }
+
+        list.sort((a,b) ->{
+            return a.val - b.val;
+        });
+
+
+        ListNode res;
+        ListNode pre = new ListNode();
+        res = pre;
+        for(ListNode node:list){
+            pre.next = node;
+            pre = pre.next;
+        }
+
+        pre.next = null;
+        return res.next;
+    }
+}
+
+
+
+
+
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+public ListNode sortList(ListNode head) {
+        // 1、递归结束条件
+        if (head == null || head.next == null) {
+            return head;
+        }
+
+        // 2、找到链表中间节点并断开链表 & 递归下探
+        ListNode midNode = middleNode(head);
+        ListNode rightHead = midNode.next;
+        midNode.next = null;
+
+        ListNode left = sortList(head);
+        ListNode right = sortList(rightHead);
+
+        // 3、当前层业务操作（合并有序链表）
+        return mergeTwoLists(left, right);
+    }
+    
+    //  找到链表中间节点（876. 链表的中间结点）
+    private ListNode middleNode(ListNode head) {
+        if (head == null || head.next == null) {
+            return head;
+        }
+        ListNode slow = head;
+        ListNode fast = head.next.next;
+
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+
+        return slow;
+    }
+
+    // 合并两个有序链表（21. 合并两个有序链表）
+    private ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        ListNode sentry = new ListNode(-1);
+        ListNode curr = sentry;
+
+        while(l1 != null && l2 != null) {
+            if(l1.val < l2.val) {
+                curr.next = l1;
+                l1 = l1.next;
+            } else {
+                curr.next = l2;
+                l2 = l2.next;
+            }
+
+            curr = curr.next;
+        }
+
+        curr.next = l1 != null ? l1 : l2;
+        return sentry.next;
+    }
+}
+
+
+
+
+```
+
+
+
+
+
+#### [160. 相交链表](https://leetcode-cn.com/problems/intersection-of-two-linked-lists/)
+
+```java
+public class Solution {
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        ListNode A = headA, B = headB;
+
+        while(headA != headB){
+            headA = headA.next == null? B : headA.next;
+            headB = headB.next == null? A : headB.next;
+        }
+
+        return headA;
+    }
+}
+```
+
+
+
+
+
+
 
 
 
@@ -5143,6 +5355,45 @@ class Solution {
 
 #### [463. 岛屿的周长](https://leetcode-cn.com/problems/island-perimeter/)
 
+```java
+class Solution {
+    public int islandPerimeter(int[][] grid) {
+
+        //only one isoland
+
+        for(int i = 0; i < grid.length; i++){
+
+            for(int j = 0; j < grid[0].length; j++){
+
+                if(grid[i][j] == 1){
+
+                    return dfs(grid, i, j);
+                }
+            }
+        }
+
+        return 0;
+    }
+
+
+    private int dfs(int[][] grid, int row, int col){
+
+        if(row >= grid.length || row < 0 || col >= grid[0].length || col < 0){
+            return 1;
+        }
+
+        if(grid[row][col] == 0){return 1;}
+
+        if(grid[row][col] != 1){return 0;}
+
+        grid[row][col] = 2;
+
+        return dfs(grid,row - 1, col) + dfs(grid, row + 1, col) + dfs(grid, row, col - 1) + dfs(grid, row , col + 1);
+
+    }
+}
+```
+
 
 
 #### [695. 岛屿的最大面积](https://leetcode-cn.com/problems/max-area-of-island/)
@@ -5165,9 +5416,56 @@ class Solution {
 
 
 
+**求装满背包有几种方法，一般公式都是：dp[j] += dp[j - nums[i]];**
 
 
 
+
+
+
+
+
+
+
+
+## 深度优先遍历(DFS)
+
+#### [207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
+
+你这个学期必须选修 numCourses 门课程，记为 0 到 numCourses - 1 。
+
+在选修某些课程之前需要一些先修课程。 先修课程按数组 prerequisites 给出，其中 prerequisites[i] = [ai, bi] ，表示如果要学习课程 ai 则 必须 先学习课程  bi 。
+
+例如，先修课程对 [0, 1] 表示：想要学习课程 0 ，你需要先完成课程 1 。
+请你判断是否可能完成所有课程的学习？如果可以，返回 true ；否则，返回 false
+
+
+
+```java
+class Solution {
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        List<List<Integer>> adjacency = new ArrayList<>();
+        for(int i = 0; i < numCourses; i++)
+            adjacency.add(new ArrayList<>());
+        int[] flags = new int[numCourses];
+        for(int[] cp : prerequisites)
+            adjacency.get(cp[1]).add(cp[0]);
+        for(int i = 0; i < numCourses; i++)
+            if(!dfs(adjacency, flags, i)) return false;
+        return true;
+    }
+    private boolean dfs(List<List<Integer>> adjacency, int[] flags, int i) {
+        if(flags[i] == 1) return false;
+        if(flags[i] == -1) return true;
+        flags[i] = 1;
+        for(Integer j : adjacency.get(i))
+            if(!dfs(adjacency, flags, j)) return false;
+        flags[i] = -1;
+        return true;
+    }
+}
+
+```
 
 
 
@@ -6109,4 +6407,46 @@ class Solution {
 
 [207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
 
-[5980. 将字符串拆分为若干长度为 k 的组](https://leetcode-cn.com/problems/divide-a-string-into-groups-of-size-k/)
+[2138. 将字符串拆分为若干长度为 k 的组](https://leetcode-cn.com/problems/divide-a-string-into-groups-of-size-k/)
+
+## 2022-1-17
+
+[207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
+
+
+
+## 2022-1-18
+
+[148. 排序链表](https://leetcode-cn.com/problems/sort-list/)
+
+[518. 零钱兑换 II](https://leetcode-cn.com/problems/coin-change-2/)
+
+[377. 组合总和 Ⅳ](https://leetcode-cn.com/problems/combination-sum-iv/)
+
+[70. 爬楼梯](https://leetcode-cn.com/problems/climbing-stairs/)
+
+[207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
+
+[2138. 将字符串拆分为若干长度为 k 的组](https://leetcode-cn.com/problems/divide-a-string-into-groups-of-size-k/)
+
+[141. 环形链表](https://leetcode-cn.com/problems/linked-list-cycle/)
+
+[206. 反转链表](https://leetcode-cn.com/problems/reverse-linked-list/)(背不熟)
+
+[141. 环形链表](https://leetcode-cn.com/problems/linked-list-cycle/)(这题可以写的简略一点)
+
+
+
+
+
+## 2022-1-19
+
+[219. 存在重复元素 II](https://leetcode-cn.com/problems/contains-duplicate-ii/)(把思路捋清楚)
+
+[208. 实现 Trie (前缀树)](https://leetcode-cn.com/problems/implement-trie-prefix-tree/)
+
+[1114. 按序打印](https://leetcode-cn.com/problems/print-in-order/)
+
+[200. 岛屿数量](https://leetcode-cn.com/problems/number-of-islands/)
+
+[463. 岛屿的周长](https://leetcode-cn.com/problems/island-perimeter/)
