@@ -1472,7 +1472,110 @@ int maxProfit(vector<int>& prices){
 
 
 
+
+
+## 前缀和
+
+#### [560. 和为 K 的子数组](https://leetcode-cn.com/problems/subarray-sum-equals-k/)
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class Solution {
+
+    public int subarraySum(int[] nums, int k) {
+        // key：前缀和，value：key 对应的前缀和的个数
+        Map<Integer, Integer> preSumFreq = new HashMap<>();
+        // 对于下标为 0 的元素，前缀和为 0，个数为 1, 因为如果是 [1,2,3,6], k = 6 的情况下, preSum - k 为0,如果put(0,0)的话就少 1,造成错误
+        preSumFreq.put(0, 1);
+
+        int preSum = 0;
+        int count = 0;
+        for (int num : nums) {
+            preSum += num;
+
+            // 先获得前缀和为 preSum - k 的个数，加到计数变量里
+            if (preSumFreq.containsKey(preSum - k)) {
+                count += preSumFreq.get(preSum - k);
+            }
+
+            // 然后维护 preSumFreq 的定义
+            preSumFreq.put(preSum, preSumFreq.getOrDefault(preSum, 0) + 1);
+        }
+        return count;
+    }
+}
+
+```
+
+
+
+
+
 ## 链表
+
+[快慢指针（注意链表长度为偶数时，返回第 2 个结点的细节） - 链表的中间结点 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/middle-of-the-linked-list/solution/kuai-man-zhi-zhen-zhu-yao-zai-yu-diao-shi-by-liwei/)
+
+
+
+
+
+#### [2. 两数相加](https://leetcode-cn.com/problems/add-two-numbers/)
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    ListNode pre;
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+
+        ListNode head=null,tail=null;
+        int even=0;
+        while(l1 != null || l2 != null){
+
+            int n1= l1!=null? l1.val:0;
+            int n2=l2 !=null? l2.val:0;
+
+            int sum=n1+n2+even;
+
+            if(head == null){
+                head=tail=new ListNode((sum%10));
+            }else{
+                tail.next=new ListNode((sum%10));
+                tail=tail.next;
+            }
+            even=sum/10;
+
+            if(l1 != null){
+                l1=l1.next;
+            }
+            if(l2 != null){
+                l2=l2.next;
+            }            
+        }
+
+        if(even > 0){
+            tail.next=new ListNode(even);
+        }
+        return head;
+
+
+    }
+}
+```
+
+
+
+
 
 
 
@@ -1539,6 +1642,212 @@ class Solution {
     }
 }
 ```
+
+
+
+
+
+#### [24. 两两交换链表中的节点](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)
+
+给你一个链表，两两交换其中相邻的节点，并返回交换后链表的头节点。你必须在不修改节点内部的值的情况下完成本题（即，只能进行节点交换）。
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode swapPairs(ListNode head) {
+        
+        ListNode pre = new ListNode();
+        ListNode res = pre;
+        pre.next = head;
+
+        while(pre.next != null && pre.next.next != null){
+            ListNode first = pre.next;
+            ListNode second = pre.next.next;
+
+            first.next = second.next;
+            second.next = first;
+            pre.next = second;
+
+            pre = pre.next.next;
+        }
+
+        return res.next;
+    }
+}
+```
+
+
+
+#### [25. K 个一组翻转链表](https://leetcode-cn.com/problems/reverse-nodes-in-k-group/)
+
+给你一个链表，每 k 个节点一组进行翻转，请你返回翻转后的链表。
+
+k 是一个正整数，它的值小于或等于链表的长度。
+
+如果节点总数不是 k 的整数倍，那么请将最后剩余的节点保持原有顺序。
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) { val = x; }
+ * }
+ */
+class Solution {
+    public ListNode reverseKGroup(ListNode head, int k) {
+        if (head == null || head.next == null){
+            return head;
+        }
+        //定义一个假的节点。
+        ListNode dummy=new ListNode(0);
+        //假节点的next指向head。
+        // dummy->1->2->3->4->5
+        dummy.next=head;
+        //初始化pre和end都指向dummy。pre指每次要翻转的链表的头结点的上一个节点。end指每次要翻转的链表的尾节点
+        ListNode pre=dummy;
+        ListNode end=dummy;
+
+        while(end.next!=null){
+            //循环k次，找到需要翻转的链表的结尾,这里每次循环要判断end是否等于空,因为如果为空，end.next会报空指针异常。
+            //dummy->1->2->3->4->5 若k为2，循环2次，end指向2
+            for(int i=0;i<k&&end != null;i++){
+                end=end.next;
+            }
+            //如果end==null，即需要翻转的链表的节点数小于k，不执行翻转。
+            if(end==null){
+                break;
+            }
+            //先记录下end.next,方便后面链接链表
+            ListNode next=end.next;
+            //然后断开链表
+            end.next=null;
+            //记录下要翻转链表的头节点
+            ListNode start=pre.next;
+            //翻转链表,pre.next指向翻转后的链表。1->2 变成2->1。 dummy->2->1
+            pre.next=reverse(start);
+            //翻转后头节点变到最后。通过.next把断开的链表重新链接。
+            start.next=next;
+            //将pre换成下次要翻转的链表的头结点的上一个节点。即start
+            pre=start;
+            //翻转结束，将end置为下次要翻转的链表的头结点的上一个节点。即start
+            end=start;
+        }
+        return dummy.next;
+
+
+    }
+    //链表翻转
+    // 例子：   head： 1->2->3->4
+    public ListNode reverse(ListNode head) {
+         //单链表为空或只有一个节点，直接返回原单链表
+        if (head == null || head.next == null){
+            return head;
+        }
+        //前一个节点指针
+        ListNode preNode = null;
+        //当前节点指针
+        ListNode curNode = head;
+        //下一个节点指针
+        ListNode nextNode = null;
+        while (curNode != null){
+            nextNode = curNode.next;//nextNode 指向下一个节点,保存当前节点后面的链表。
+            curNode.next=preNode;//将当前节点next域指向前一个节点   null<-1<-2<-3<-4
+            preNode = curNode;//preNode 指针向后移动。preNode指向当前节点。
+            curNode = nextNode;//curNode指针向后移动。下一个节点变成当前节点
+        }
+        return preNode;
+
+    }
+
+
+}
+```
+
+
+
+
+
+#### [92. 反转链表 II](https://leetcode-cn.com/problems/reverse-linked-list-ii/)
+
+给你单链表的头指针 head 和两个整数 left 和 right ，其中 left <= right 。请你反转从位置 left 到位置 right 的链表节点，返回 反转后的链表 。
+
+```java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode reverseBetween(ListNode head, int left, int right) {
+        ListNode dummy = new ListNode();
+        dummy.next = head;
+
+        ListNode pre = dummy;
+
+        ListNode start = dummy, end = dummy;
+
+        for(int i = 0; i < left; i++){
+            if(start != null){
+                pre = start;
+                start = start.next;
+            }else{return dummy.next;}
+        }
+
+        end = start;
+        for(int i = 0; i < right - left; i++){
+            if(end != null){end = end.next;}
+            else{return dummy.next;}
+        }
+
+        ListNode next = end.next;
+        end.next = null;
+
+        pre.next = reverse(start);
+        start.next = next;
+
+        return dummy.next;
+    }
+
+    private ListNode reverse(ListNode start){
+        ListNode pre = null;
+        ListNode current = start;
+        ListNode next = null;
+
+        while(current != null){
+            next = current.next;
+            current.next = pre;
+            pre = current;
+            current = next;
+        }
+
+        return pre;
+    }
+}
+```
+
+
+
+
+
+#### [82. 删除排序链表中的重复元素 II](https://leetcode-cn.com/problems/remove-duplicates-from-sorted-list-ii/)
+
+
 
 
 
@@ -5298,6 +5607,20 @@ class Solution {
 
 
 
+
+
+
+
+## 树形动态规划
+
+[三种方法解决树形动态规划问题-从入门级代码到高效树形动态规划代码实现 - 打家劫舍 III - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/house-robber-iii/solution/san-chong-fang-fa-jie-jue-shu-xing-dong-tai-gui-hu/)
+
+
+
+
+
+
+
 ## 岛屿问题
 
 [岛屿类问题的通用解法、DFS 遍历框架 - 岛屿数量 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/number-of-islands/solution/dao-yu-lei-wen-ti-de-tong-yong-jie-fa-dfs-bian-li-/)
@@ -5426,9 +5749,19 @@ class Solution {
 
 
 
+## DFS and BFS 题型
 
 
-## 深度优先遍历(DFS)
+
+#### [130. 被围绕的区域](https://leetcode-cn.com/problems/surrounded-regions/)(该题DFS , BFS, 并查集)
+
+
+
+
+
+
+
+### 深度优先遍历(DFS)
 
 #### [207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
 
@@ -5465,6 +5798,341 @@ class Solution {
     }
 }
 
+```
+
+
+
+
+
+## 并查集
+
+[bfs+递归dfs+非递归dfs+并查集 - 被围绕的区域 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/surrounded-regions/solution/bfsdi-gui-dfsfei-di-gui-dfsbing-cha-ji-by-ac_pipe/)
+
+[并查集思路解决：图解思路，注释详细 - 被围绕的区域 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/surrounded-regions/solution/bing-cha-ji-si-lu-jie-jue-tu-jie-si-lu-z-5pbg/)
+
+#### [990. 等式方程的可满足性](https://leetcode-cn.com/problems/satisfiability-of-equality-equations/)
+
+给定一个由表示变量之间关系的字符串方程组成的数组，每个字符串方程 equations[i] 的长度为 4，并采用两种不同的形式之一："a==b" 或 "a!=b"。在这里，a 和 b 是小写字母（不一定不同），表示单字母变量名。
+
+只有当可以将整数分配给变量名，以便满足所有给定的方程时才返回 true，否则返回 false。 
+
+```java
+class Solution {
+    public boolean equationsPossible(String[] equations) {
+        int[] parent = new int[26];
+        for (int i = 0; i < 26; i++) {
+            parent[i] = i;
+        }
+        for (String str : equations) {
+            if (str.charAt(1) == '=') {
+                int index1 = str.charAt(0) - 'a';
+                int index2 = str.charAt(3) - 'a';
+                union(parent, index1, index2);
+            }
+        }
+        for (String str : equations) {
+            if (str.charAt(1) == '!') {
+                int index1 = str.charAt(0) - 'a';
+                int index2 = str.charAt(3) - 'a';
+                if (find(parent, index1) == find(parent, index2)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public void union(int[] parent, int index1, int index2) {
+        parent[find(parent, index1)] = find(parent, index2);
+    }
+
+    public int find(int[] parent, int index) {
+        while (parent[index] != index) {
+            parent[index] = parent[parent[index]];
+            index = parent[index];
+        }
+        return index;
+    }
+}
+
+
+
+
+
+class Solution {
+    public boolean equationsPossible(String[] equations) {
+        int[] parent = new int[26];
+
+        for(int i = 0; i < 26; i++){
+            parent[i] = i;
+        }
+
+        for(String str : equations){
+            if(str.charAt(1) == '='){
+                int index1 = str.charAt(0) - 'a';
+                int index2 = str.charAt(3) - 'a';
+
+                union(parent, index1, index2);
+            }
+        }
+
+        for(String str : equations){
+            if(str.charAt(1) == '!'){
+                int index1 = str.charAt(0) - 'a';
+                int index2 = str.charAt(3) - 'a';
+                if(find(parent,index1) == find(parent,index2)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
+    private void union(int[] parent, int index1, int index2){
+        int rootX = find(parent,index1);
+        int rootY = find(parent,index2);
+
+        if(rootX == rootY){return;}
+
+        parent[rootX] = rootY;
+    }
+
+    //尝试一下路径压缩
+    private int find(int[] parent, int index){
+        // while(parent[index] != index){
+        //     parent[index] = parent[parent[index]];
+        //     index = parent[index];
+        // }
+        // return index;
+        if(parent[index] != index){
+            parent[index] = find(parent,parent[index]);// 更新 index 的父节点为其 父节点的父节点(由于路径压缩,所以父节点的父节点就是根节点)
+        }
+        return parent[index];
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+#### [130. 被围绕的区域](https://leetcode-cn.com/problems/surrounded-regions/)
+
+
+
+
+
+
+
+
+
+#### [399. 除法求值](https://leetcode-cn.com/problems/evaluate-division/)
+
+```java
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+//并查集
+public class Solution {
+
+    public double[] calcEquation(List<List<String>> equations, double[] values, List<List<String>> queries) {
+        int equationsSize = equations.size();
+
+        UnionFind unionFind = new UnionFind(2 * equationsSize);
+        // 第 1 步：预处理，将变量的值与 id 进行映射，使得并查集的底层使用数组实现，方便编码
+        Map<String, Integer> hashMap = new HashMap<>(2 * equationsSize);
+        int id = 0;
+        for (int i = 0; i < equationsSize; i++) {
+            List<String> equation = equations.get(i);
+            String var1 = equation.get(0);
+            String var2 = equation.get(1);
+
+            if (!hashMap.containsKey(var1)) {
+                hashMap.put(var1, id);
+                id++;
+            }
+            if (!hashMap.containsKey(var2)) {
+                hashMap.put(var2, id);
+                id++;
+            }
+            unionFind.union(hashMap.get(var1), hashMap.get(var2), values[i]);
+        }
+
+        // 第 2 步：做查询
+        int queriesSize = queries.size();
+        double[] res = new double[queriesSize];
+        for (int i = 0; i < queriesSize; i++) {
+            String var1 = queries.get(i).get(0);
+            String var2 = queries.get(i).get(1);
+
+            Integer id1 = hashMap.get(var1);
+            Integer id2 = hashMap.get(var2);
+
+            if (id1 == null || id2 == null) {
+                res[i] = -1.0d;
+            } else {
+                res[i] = unionFind.isConnected(id1, id2);
+            }
+        }
+        return res;
+    }
+
+    private class UnionFind {
+
+        private int[] parent;
+
+        /**
+         * 指向的父结点的权值
+         */
+        private double[] weight;
+
+
+        public UnionFind(int n) {
+            this.parent = new int[n];
+            this.weight = new double[n];
+            for (int i = 0; i < n; i++) {
+                parent[i] = i;
+                weight[i] = 1.0d;
+            }
+        }
+
+        public void union(int x, int y, double value) {
+            int rootX = find(x);
+            int rootY = find(y);
+            if (rootX == rootY) {
+                return;
+            }
+
+            parent[rootX] = rootY;
+          	// 关系式的推导请见「参考代码」下方的示意图
+            weight[rootX] = weight[y] * value / weight[x];
+        }
+
+        /**
+         * 路径压缩
+         *
+         * @param x
+         * @return 根结点的 id
+         */
+        public int find(int x) {
+
+            // if 结点x 的 parent 不是其本身,则记录当前结点x 的parent 为 origin,将当前结点x 的parent设置为
+            //当前结点x的父节点的父节点,并且weight[x] = weight[x] * weight[origin]
+            // eg :   A -> B -> C   A/B = 2  B/C = 3 A/C = ? 6 tell me about you idea
+            if (x != parent[x]) {
+                int origin = parent[x];
+                parent[x] = find(parent[x]);
+                weight[x] *= weight[origin];
+            }
+            return parent[x];
+        }
+
+        public double isConnected(int x, int y) {
+            int rootX = find(x);
+            int rootY = find(y);
+            if (rootX == rootY) {
+                return weight[x] / weight[y];
+            } else {
+                return -1.0d;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+## 前缀和
+
+#### [437. 路径总和 III](https://leetcode-cn.com/problems/path-sum-iii/)
+
+[【彤哥来刷题啦】前缀和 & 图解 & 回溯！ - 路径总和 III - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/path-sum-iii/solution/tong-ge-lai-shua-ti-la-qian-zhui-he-tu-j-trcq/)
+
+
+
+
+
+## MySQL
+
+
+
+#### [176. 第二高的薪水](https://leetcode-cn.com/problems/second-highest-salary/)
+
+Employee 表：
++-------------+------+
+| Column Name | Type |
++-------------+------+
+| id          | int  |
+| salary      | int  |
++-------------+------+
+id 是这个表的主键。
+表的每一行包含员工的工资信息。
+
+```sql
+select ifNull(
+(select distinct salary
+from Employee 
+order by Salary Desc
+limit 1,1),null
+) as SecondHighestSalary;
+
+
+select max(distinct Salary) SecondHighestSalary 
+from Employee
+where Salary < (select max(Salary) from Employee)
+```
+
+
+
+
+
+
+
+
+
+#### [177. 第N高的薪水](https://leetcode-cn.com/problems/nth-highest-salary/)
+
+编写一个 SQL 查询，获取 Employee 表中第 n 高的薪水（Salary）。
+
++----+--------+
+| Id | Salary |
++----+--------+
+| 1  | 100    |
+| 2  | 200    |
+| 3  | 300    |
++----+--------+
+
+```sql
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+  SET n = N - 1;
+  RETURN (
+      # Write your MySQL query statement below.
+      select ifNull(
+          (select distinct Salary
+          from Employee
+          order by Salary Desc
+          limit n,1),null
+      )
+  );
+END
 ```
 
 
@@ -6450,3 +7118,109 @@ class Solution {
 [200. 岛屿数量](https://leetcode-cn.com/problems/number-of-islands/)
 
 [463. 岛屿的周长](https://leetcode-cn.com/problems/island-perimeter/)
+
+[2100. 适合打劫银行的日子](https://leetcode-cn.com/problems/find-good-days-to-rob-the-bank/)
+
+
+
+## 2022-1-20
+
+[24. 两两交换链表中的节点](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)
+
+[203. 移除链表元素](https://leetcode-cn.com/problems/remove-linked-list-elements/)
+
+[21. 合并两个有序链表](https://leetcode-cn.com/problems/merge-two-sorted-lists/)
+
+[328. 奇偶链表](https://leetcode-cn.com/problems/odd-even-linked-list/)
+
+[322. 零钱兑换](https://leetcode-cn.com/problems/coin-change/)
+
+[86. 分隔链表](https://leetcode-cn.com/problems/partition-list/)(和328有异曲同工之妙,当然,328有另一种解法,这个也是)
+
+
+
+
+
+## 2022-1-21
+
+[2. 两数相加](https://leetcode-cn.com/problems/add-two-numbers/)
+
+[82. 删除排序链表中的重复元素 II](https://leetcode-cn.com/problems/remove-duplicates-from-sorted-list-ii/)(迭代和递归)
+
+[560. 和为 K 的子数组](https://leetcode-cn.com/problems/subarray-sum-equals-k/)
+
+
+
+## 2022-1-22
+
+[337. 打家劫舍 III](https://leetcode-cn.com/problems/house-robber-iii/)
+
+[279. 完全平方数](https://leetcode-cn.com/problems/perfect-squares/)(dp,贪心,数学三种解法)
+
+
+
+
+
+## 2022-1-24
+
+[25. K 个一组翻转链表](https://leetcode-cn.com/problems/reverse-nodes-in-k-group/)
+
+
+
+## 2022-1-25
+
+[2148. 元素计数](https://leetcode-cn.com/problems/count-elements-with-strictly-smaller-and-greater-elements/)
+
+[130. 被围绕的区域](https://leetcode-cn.com/problems/surrounded-regions/)
+
+[2149. 按符号重排数组](https://leetcode-cn.com/problems/rearrange-array-elements-by-sign/)
+
+[2148. 元素计数](https://leetcode-cn.com/problems/count-elements-with-strictly-smaller-and-greater-elements/)
+
+[2150. 找出数组中的所有孤独数字](https://leetcode-cn.com/problems/find-all-lonely-numbers-in-the-array/)
+
+
+
+
+
+## 2022-1-26
+
+[130. 被围绕的区域](https://leetcode-cn.com/problems/surrounded-regions/)
+
+[990. 等式方程的可满足性](https://leetcode-cn.com/problems/satisfiability-of-equality-equations/)
+
+
+
+MySQL
+
+[175. 组合两个表](https://leetcode-cn.com/problems/combine-two-tables/)
+
+[176. 第二高的薪水](https://leetcode-cn.com/problems/second-highest-salary/)
+
+
+
+## 2022-1-27
+
+[399. 除法求值](https://leetcode-cn.com/problems/evaluate-division/)
+
+[5. 最长回文子串](https://leetcode-cn.com/problems/longest-palindromic-substring/)
+
+
+
+## 2022-1-28
+
+[399. 除法求值](https://leetcode-cn.com/problems/evaluate-division/)
+
+[990. 等式方程的可满足性](https://leetcode-cn.com/problems/satisfiability-of-equality-equations/)
+
+[2099. 找到和最大的长度为 K 的子序列](https://leetcode-cn.com/problems/find-subsequence-of-length-k-with-the-largest-sum/)
+
+
+
+
+
+## 2022-1-29
+
+[215. 数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/)
+
+[437. 路径总和 III](https://leetcode-cn.com/problems/path-sum-iii/)
