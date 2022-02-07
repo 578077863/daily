@@ -2,6 +2,16 @@
 
 ## 排序算法
 
+[复习基础排序算法（Java） - 排序数组 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/sort-an-array/solution/fu-xi-ji-chu-pai-xu-suan-fa-java-by-liweiwei1419/)
+
+
+
+
+
+
+
+
+
 ### 希尔排序
 
 
@@ -146,6 +156,14 @@ public class QuickSort {
 
 
 
+
+
+
+
+## 排序
+
+
+
 #### [215. 数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/)
 
 给定整数数组 nums 和整数 k，请返回数组中第 k 个最大的元素。
@@ -180,7 +198,7 @@ class Solution {
         int left = i * 2 + 1, right = i * 2 + 2, largest = i;
         //如果左子点在数组内，且比当前父节点大，则将最大值的指针指向左子点。
         if (left < heapSize && a[left] > a[largest]) {
-            largest = left;/''/
+            largest = left;
         } 
         //如果右子点在数组内，且比当前父节点大，则将最大值的指针指向右子点。
         if (right < heapSize && a[right] > a[largest]) {
@@ -200,13 +218,192 @@ class Solution {
         a[j] = temp;
     }
 }
+
+
+
+
+
+
+
+
+
+//小根堆
+class Solution {
+    int k = 0;
+    public int findKthLargest(int[] nums, int k) {
+        int[] minPriorityQueue = new int[k];
+        this.k = k;
+        for(int i = 0; i < k; i++){
+            minPriorityQueue[i] = nums[i];
+        }
+
+        buildMinHeap(minPriorityQueue,k);
+
+        for(int i = k; i < nums.length; i++){
+            if(minPriorityQueue[0] < nums[i]){
+                minPriorityQueue[0] = nums[i];
+                buildMinHeap(minPriorityQueue,k);
+            }
+        }
+
+        return minPriorityQueue[0];
+
+    }
+
+
+    private void buildMinHeap(int[] nums, int heapSize){
+        for(int i = (heapSize - 2) / 2; i >= 0; i--){
+            minHeapify(nums,i);
+        }
+    }
+
+    private void minHeapify(int[] nums, int parent){
+        int left = parent * 2 + 1;
+        int right = parent * 2 + 2;
+
+        int smallest = parent;
+
+        if( left < k && nums[smallest] > nums[left]) { smallest = left;}
+        if( right < k && nums[smallest] > nums[right]) { smallest = right;}
+
+        if(parent != smallest){
+            swap(nums, smallest, parent);
+        }
+    }
+
+    private void swap(int[] nums, int a, int b){
+            int temp = nums[a];
+            nums[a] = nums[b];
+            nums[b] = temp;
+    }
+}
+
+
+
+
+
+
+
+class Solution {
+    public int[] sortArray(int[] nums) {
+
+        int len = nums.length;
+        int[] a = new int[len + 1];
+
+        for (int i = 0; i < nums.length; ++i) {
+            a[i+1] = nums[i];
+        }          
+        //下沉建堆
+        for (int i = len/2; i >= 1; --i) {
+            sink(a,i,len);
+        }
+
+        int k = len;
+        //排序
+        while (k > 1) {
+            swap(a,1,k--);
+            sink(a,1,k);
+        }
+        for (int i = 1; i < len+1; ++i) {
+            nums[i-1] = a[i];
+        }
+        return nums;
+    }
+    public void sink (int[] nums, int k,int end) {
+        //下沉
+        while (2 * k <= end) {
+            int j = 2 * k;
+            //找出子节点中最大或最小的那个
+            if (j + 1 <= end && nums[j + 1] > nums[j]) {
+                j++;
+            }
+            if (nums[j] > nums[k]) {
+                swap(nums, j, k);
+            } else {
+                break;
+            }
+            k = j;
+        }
+    }
+    public void swap (int nums[], int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+    
+}
+
+作者：chefyuan
+链接：https://leetcode-cn.com/problems/sort-an-array/solution/dong-hua-mo-ni-yi-ge-po-dui-pai-wo-gao-l-i6mt/
+来源：力扣（LeetCode）
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 ```
 
+```java
+public class Solution {
 
+    public int[] sortArray(int[] nums) {
+        int len = nums.length;
+        // 将数组整理成堆
+        heapify(nums);
 
+        // 循环不变量：区间 [0, i] 堆有序
+        for (int i = len - 1; i >= 1; ) {
+            // 把堆顶元素（当前最大）交换到数组末尾
+            swap(nums, 0, i);
+            // 逐步减少堆有序的部分
+            i--;
+            // 下标 0 位置下沉操作，使得区间 [0, i] 堆有序
+            siftDown(nums, 0, i);
+        }
+        return nums;
+    }
 
+    /**
+     * 将数组整理成堆（堆有序）
+     *
+     * @param nums
+     */
+    private void heapify(int[] nums) {
+        int len = nums.length;
+        // 只需要从 i = (len - 1) / 2 这个位置开始逐层下移
+        for (int i = (len - 1) / 2; i >= 0; i--) {
+            siftDown(nums, i, len - 1);
+        }
+    }
 
+    /**
+     * @param nums
+     * @param k    当前下沉元素的下标
+     * @param end  [0, end] 是 nums 的有效部分
+     */
+    private void siftDown(int[] nums, int k, int end) {
+        while (2 * k + 1 <= end) {
+            int j = 2 * k + 1;// j是索引为
+            if (j + 1 <= end && nums[j + 1] > nums[j]) {
+                j++;
+            }
+            if (nums[j] > nums[k]) {
+                swap(nums, j, k);
+            } else {
+                break;
+            }
+            k = j;
+        }
+    }
 
+    private void swap(int[] nums, int index1, int index2) {
+        int temp = nums[index1];
+        nums[index1] = nums[index2];
+        nums[index2] = temp;
+    }
+}
+
+作者：liweiwei1419
+链接：https://leetcode-cn.com/problems/sort-an-array/solution/fu-xi-ji-chu-pai-xu-suan-fa-java-by-liweiwei1419/
+来源：力扣（LeetCode）
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+```
 
 
 
@@ -4244,6 +4441,21 @@ class Solution {
 
 ## 回溯算法
 
+backtrack的公式：
+
+```ruby
+result = []
+def backtrack(路径, 选择列表):
+    if 满足结束条件:
+        result.add(路径)
+        return
+    
+    for 选择 in 选择列表:
+        做选择
+        backtrack(路径, 选择列表)
+        撤销选择
+```
+
 #### [17. 电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/)
 
 给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。
@@ -4347,6 +4559,56 @@ class Solution {
         }
     }
 }
+```
+
+
+
+
+
+
+
+#### [46. 全排列](https://leetcode-cn.com/problems/permutations/)
+
+```java
+class Solution {
+    List<List<Integer>> res = new ArrayList<>();
+    List<Integer> cur = new ArrayList<>();
+    HashSet<Integer> set = new HashSet<>();
+
+    public boolean isValid(int num) {
+        if (set.contains(num)) {
+            return false;
+        }
+        return true;
+    }
+
+    public void backTracking(int[] nums) {
+        if (cur.size() == nums.length) {
+            res.add(new ArrayList<>(cur));
+            return;
+        }
+        for (int i = 0; i < nums.length; i++) {
+            if (!isValid(nums[i])) {
+                continue;
+            }
+            
+            cur.add(nums[i]);
+            set.add(nums[i]);
+
+            backTracking(nums);
+            
+            cur.remove(cur.size() - 1);
+            set.remove(nums[i]);
+        }
+    }
+
+
+    public List<List<Integer>> permute(int[] nums) {
+        backTracking(nums);
+        return res;
+    }
+}
+
 ```
 
 
@@ -6053,6 +6315,87 @@ public class Solution {
 
 
 
+
+// 定义邻接节点类
+class Node {
+    // 邻接节点代表的字符串
+    public String id;
+    // 到达邻接节点所需的倍数
+    public double num;
+    public Node(String i, double n) {
+        id = i;
+        num = n;
+    }
+}
+
+class Solution {
+    // 构造一个map用于存储图
+    Map<String, List<Node>> map;
+    public double[] calcEquation(List<List<String>> equations, double[] values, List<List<String>> queries) {
+        int n = equations.size();
+        map = new HashMap<>();
+        double[] res = new double[queries.size()];
+
+        // 将节点都放到图中
+        for(int i = 0; i < n; i++) {
+            // 获取被除数和除数的节点名称
+            String dividend = equations.get(i).get(0);
+            String divisor = equations.get(i).get(1);
+
+            // 如果map中不包含某个节点的字符串，那就添加一个键值对
+            if(!map.containsKey(dividend)) {
+                map.put(dividend, new ArrayList<>());
+            }
+            if(!map.containsKey(divisor)) {
+                map.put(divisor, new ArrayList<>());
+            }
+            // 除数和被除数都要放进去，这是一个有向图
+            // 除数和被除数的倍数值是倒数关系的
+            map.get(dividend).add(new Node(divisor, values[i]));
+            map.get(divisor).add(new Node(dividend, 1 / values[i]));
+        }
+
+        int cnt = 0;
+        // 遍历问题
+        for(List<String> q : queries) {
+            // 深搜，初始倍数就是1
+            res[cnt] = dfs(q.get(0), q.get(1), 1.0, new HashSet<>());
+            cnt ++;
+        }
+        
+        return res;
+    } 
+
+    // 深搜其中参数cur表示当前节点，dest表示目标节点，knerl表示之前计算的倍数，set保存已经走过的节点
+    private double dfs(String cur, String dest, double knerl, Set<String> set) {
+        // 如果map不包含当前的节点或者已经走过当前节点了，说明这条路不会产生答案
+        if(!map.containsKey(cur) || set.contains(cur)) {
+            return -1.0;
+        }
+        // 走到了终点，那就返回已经计算了的倍数
+        if(cur.equals(dest)) return knerl;
+        // 集合中添加当前走过的节点，防止绕圈
+        set.add(cur);
+
+        // 遍历当前节点的邻接节点
+        for(Node node : map.get(cur)) {
+            // 继续深搜，倍数需要乘上下个一个节点的倍数
+            double temp = dfs(node.id, dest, knerl * node.num, set);
+            // 如果搜到了答案，就直接返回答案
+            if(temp != -1.0) return temp;
+        }
+
+        // 没有搜到答案，返回-1
+        return -1.0;
+    }
+}
+
+作者：lippon
+链接：https://leetcode-cn.com/problems/evaluate-division/solution/java-wu-xiang-tu-dfs-qing-xi-jie-by-lipp-po5k/
+来源：力扣（LeetCode）
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+
 ```
 
 
@@ -6066,6 +6409,101 @@ public class Solution {
 [【彤哥来刷题啦】前缀和 & 图解 & 回溯！ - 路径总和 III - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/path-sum-iii/solution/tong-ge-lai-shua-ti-la-qian-zhui-he-tu-j-trcq/)
 
 
+
+
+
+## 优先队列
+
+#### [215. 数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/)
+
+
+
+
+
+## 回文
+
+#### [5. 最长回文子串](https://leetcode-cn.com/problems/longest-palindromic-substring/)
+
+给你一个字符串 `s`，找到 `s` 中最长的回文子串。
+
+```java
+// 中心扩散法
+class Solution {
+    public String longestPalindrome(String s) {
+
+        int len = s.length();
+
+        if(len < 2){return s;}
+
+        int maxLen = 0;
+        int[] res = new int[2];
+
+        for(int i = 0; i < len - 1;++i){
+            
+            int[] odd = centerSpread(s, i, i);
+            int[] even = centerSpread(s, i, i + 1);
+            int[] max = odd[1] > even[1] ? odd : even;
+
+            if(maxLen < max[1]){
+                maxLen = max[1];
+                res = max;
+            }
+        }
+
+        return s.substring(res[0], res[0] + res[1]);
+
+
+    }
+
+
+    private int[] centerSpread(String s, int left, int right){
+
+        int len = s.length();
+
+        while(left >= 0 && right < len){
+            if(s.charAt(left) == s.charAt(right)){
+                left--;
+                right++;
+            }else{
+                break;
+            }
+        }
+
+        return new int[]{left + 1, right - 1 - left};
+    }
+}
+
+
+
+```
+
+
+
+
+
+
+
+#### [14. 最长公共前缀](https://leetcode-cn.com/problems/longest-common-prefix/)
+
+```java
+class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if(strs==null||strs.length==0)
+            return "";
+        for(int i=0;i<strs[0].length();i++){//从数组中第一个字符串开始遍历
+            char a=strs[0].charAt(i);
+            for(int j=1;j<strs.length;j++){
+                if(strs[j].length()==i||strs[j].charAt(i)!=a)
+                    //strs[j].length()==i---strs[j]字符串长度达到最大值，后面没了   
+                    //strs[j].charAt(i) != strs[0].charAt(i)---两个字符串相同位置处字符不相等
+                    return strs[0].substring(0,i);//到i时结束循环，返回从0到i之前的字符串，不包括i      substring(0,0)返回的是空字符串
+                //只要对应位置处字符不同或参与比较的任意一个字符串遍历完，就return即退出方法
+            }
+        }
+        return strs[0];//这里必须返回strs[0]，考虑到strs[0]遍历完的情况：strs[0]即是最长公共前缀
+    }
+}
+```
 
 
 
@@ -7224,3 +7662,18 @@ MySQL
 [215. 数组中的第K个最大元素](https://leetcode-cn.com/problems/kth-largest-element-in-an-array/)
 
 [437. 路径总和 III](https://leetcode-cn.com/problems/path-sum-iii/)
+
+
+
+
+
+## 2022-1-31
+
+[5. 最长回文子串 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/longest-palindromic-substring/)(3种思想)
+
+
+
+[206. 反转链表](https://leetcode-cn.com/problems/reverse-linked-list/)(思路不清晰)
+
+
+
