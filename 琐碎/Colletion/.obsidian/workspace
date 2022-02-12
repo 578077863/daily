@@ -1,0 +1,136 @@
+{
+  "main": {
+    "id": "3f3c181b8b8336a8",
+    "type": "split",
+    "children": [
+      {
+        "id": "0ee88563224c224e",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "算法/链表.md",
+            "mode": "source",
+            "backlinks": false,
+            "source": false
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "27df1835aada4ef9",
+    "type": "split",
+    "children": [
+      {
+        "id": "6a6b19951c149e20",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "22e97491cc73a45c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "ff98eef512b4c1d9",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "875. 爱吃香蕉的珂珂",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 400
+  },
+  "right": {
+    "id": "3923309a8309e7d0",
+    "type": "split",
+    "children": [
+      {
+        "id": "c4c33afbd90b6b70",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "86800a2567d4991e",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "算法/链表.md"
+              }
+            }
+          },
+          {
+            "id": "6173ad0a92cbf5f2",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "4cf3eca8f55af532",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "算法/链表.md",
+                "collapseAll": true,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "174cedbbbc10b993",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "算法/链表.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 219
+  },
+  "active": "0ee88563224c224e",
+  "lastOpenFiles": [
+    "算法/链表.md",
+    "算法/动态规划.md",
+    "算法/双指针.md",
+    "算法/二分法.md",
+    "java/java基础.md",
+    "java/JUC.md",
+    "java/JVM.md",
+    "redis/redis.md",
+    "操作系统/操作系统.md",
+    "面试杂烩/面经.md"
+  ]
+}
