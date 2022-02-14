@@ -290,8 +290,12 @@ Synchronized经过编译，会在同步块的前后分别形成monitorenter和mo
 
 
 #### 重量级锁
-
+[从jvm源码看synchronized - unbelievableme - 博客园 (cnblogs.com)](https://www.cnblogs.com/kundeg/p/8422557.html)
 如果显示调用了hashCode()、notify、wait方法则会导致对象直接升级为重量级锁
+
+一个线程尝试获取对象锁，会先令_owner指向该线程，同时_count自增1，这时候有其他线程尝试获取锁时，会先存入_EntryList集合，并进入阻塞。当前线程执行完成后，令_count自减1，若\_coubt为 0,则\_owner=null
+
+如果线程被调用了wait()等方式，释放锁时，也会令_owner=null，\_count减1，同时将该线程放入_WaitSet集合，等待唤醒。
 
 
 **自旋优化:重量级锁竞争的时候,使用自旋来优化**
@@ -345,3 +349,7 @@ synchronized 底层是利用 monitor 对象，CAS 和 mutex 互斥锁(量)来实
 
 
 ## 5. 模式
+
+
+# 6. 琐碎
+
