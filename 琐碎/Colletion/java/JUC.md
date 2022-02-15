@@ -207,9 +207,13 @@ sleep() 可能会抛出 InterruptedException，因为异常不能跨线程传播
 ### 4.5 synchronized及锁升级
 jdk1.6的优化是：
 1. 锁升级机制
-2. 锁消除。锁消除是一种编译器优化，通过逃逸分析消除部分无必要的同步代码。
+2. 锁消除。一些框架采用保守策略，将程序基于[线程安全](https://so.csdn.net/so/search?q=%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8&spm=1001.2101.3001.7020)实现，锁消除是一种编译器优化，通过逃逸分析消除部分无必要的同步代码。
 3. 锁粗化。在编译期间将相邻的同步代码块合并成一个大的同步代码块，减少反复申请、释放造成的开销。（即使每次都可以获得锁，那么频繁的操作底层同步队列也将造成不必要的消耗）
 4. 自适应自旋锁。synchronizedCAS占用owner失败后，会进行自旋尝试，这个时间不是固定的，而是**前一次在同一个锁上的自旋时间以及锁的拥有者的状态来决定的**
+
+同时，用户也可以具有一些优化意识，如：
+锁分离。最常见的就是读写分离。
+减少不必要的同步代码、减少同步代码大小，减少锁的粒度（例如jdk1.8concurrentHashMap基于synchronized实现分段加锁，将粒度压缩都了每一个桶）、尽量让同步代码短小精悍，减少锁的持有时间。
 
 
 锁的状态取决于对象头的mark word低两位。
@@ -268,7 +272,7 @@ Synchronized经过编译，会在同步块的前后分别形成monitorenter和mo
 
 轻量级锁适用于线程交替执行同步块的情况，如果存在同一时间访问同一锁即冲突访问的情况，就会导致轻量级锁膨胀为重量级锁。在线程总是能交替执行的场景（并发量小、同步代码执行快速），可以防止monitor对象的创建。
 
-轻量级锁是为了在线程交替执行同步块时提高性能，而偏向锁则是在只有一个线程执行同步块时进一步提高性能
+**轻量级锁是为了在线程交替执行同步块时提高性能，而偏向锁则是在只有一个线程执行同步块时进一步提高性能**
 
 如果CAS替换成功,对象头中存储了锁记录地址和状态00,表示由线程给对象加锁
 
@@ -290,6 +294,13 @@ Synchronized经过编译，会在同步块的前后分别形成monitorenter和mo
 
 
 #### 重量级锁
+
+
+一个线程进入synchronized后便进行**一次CAS**（CAS（owner,null,cur)试图让自己称为owner），没错，这里强调的就是一次。如果第一次CAS失败则说明抢占失败，通常会进行**自适应自旋（重试）**，如果仍然失败则进入entryList同步队列，并且调用park()阻塞当前线程，底层对应系统调用**将当前线程对象映射到的操作系统线程挂起，并让出CPU**，这一步通常代价比较大，因为涉及系统调用和线程切换。如果成功将owner修改为自己，则开始执行同步代码，并且将count加一。执行完毕将count减一，复位owner，并且唤起entryList阻塞的线程（实现上通常唤醒队头线程，不过如果没抢到还会进入entryList队尾，通常流动性很大，不会出现饥饿）。  
+而如果owner线程调用wait，则进入waitSet并阻塞（同样对应park调用），同时让出CPU。只有其他线程调用notify它才会被唤醒，而且唤醒后进入entryList，当owner被复位后，同entryList其他线程进行竞争，当称为owner将从原执行位置继续向下执行。
+
+注意：synchronized阻塞指的通常是synchronized抢占锁失败的行为，即不管互斥锁还是自旋锁指的都是**失败后的处理策略**。
+
 [从jvm源码看synchronized - unbelievableme - 博客园 (cnblogs.com)](https://www.cnblogs.com/kundeg/p/8422557.html)
 如果显示调用了hashCode()、notify、wait方法则会导致对象直接升级为重量级锁
 
@@ -331,9 +342,9 @@ Monitor获取失败到陷入阻塞中间有自旋优化,如果成功则避免阻
 
 唤醒EntryList中的Blocked线程.
 
-重量级锁之所以重是因为底层依赖OS的mutex互斥量实现，依赖堆中的monitor对象（Hotspot对应objectMonitor实现）。 当然了，如果单线程下，或者不存在“竞争明显”的情况下，没有线程会被挂起，也不会出现进程切换，但是仍然需要为使用的锁对象创建绑定的monitor并且频繁CAS设置owner。用户态与内核态的切换主要是由于park()底层涉及系统调用导致的，如果CPU上下文切换的时间接近同步代码的执行时间，那么就显得效率很低下。
+重量级锁之所以重是因为底层依赖OS的mutex互斥量实现，依赖堆中的monitor对象（Hotspot对应objectMonitor实现）。 当然了，如果单线程下，或者不存在“竞争明显”的情况下，没有线程会被挂起，也不会出现进程切换，但是仍然需要为使用的锁对象创建绑定的monitor并且频繁CAS设置owner。**用户态与内核态的切换主要是由于park()底层涉及系统调用导致的，如果CPU上下文切换的时间接近同步代码的执行时间，那么就显得效率很低下。**
 
-
+Monitor并不是随着对象的创建而创建的，而是通过synchronized告诉JVM，需要为某个java对象关联一个monitor对象。每个线程都存在两个objectMonitor对象列表，分别为free和used。当线程需要ObjectMonitor对象时，首先从线程自身的free表中申请，若存在则使用，若不存在则从global list中分配一批monitor到free中。
 
 ##### 重量级锁为什么重
 synchronized 底层是利用 monitor 对象，CAS 和 mutex 互斥锁(量)来实现的，内部会有等待队列(cxq 和 EntryList)和条件等待队列(waitSet)来存放相应阻塞的线程。
@@ -345,7 +356,137 @@ synchronized 底层是利用 monitor 对象，CAS 和 mutex 互斥锁(量)来实
 所以又引入了自适应自旋机制，来提高锁的性能。
 
 
+#### 为什么wait/notify需要被同步块包裹
 
+**从实现的角度**：  
+wait和notify依赖对象绑定的锁，只有获取锁的线程才能执行该方法（需要借助monitor关联的waitSet），否则将会抛出IllegalMonitorStateException异常（没有获取monitor）。
+
+当一个线程调用一个对象/monitor的notify（）方法时，调度器会从所有处于该对象/monitor等待队列的线程中取出任意一个线程，将其添加到同步队列中（entry list）。然后在同步队列中的多个线程就会竞争对象的锁，得到锁的线程就可以继续执行。如果等待队列中没有线程，notify（）就不会产生作用（相当于对空队列唤醒）。
+
+> 调用wait（）,唤醒的一般是等待队列首线程，如果notifyAll就是依次唤醒队列所有线程。而entryList一般也是从首节点开始唤醒，而竞争主要是**entryList之外线程与entryList刚醒来线程之间的竞争**。
+
+notifyAll()比notify()更加常用， 因为notify()方法只会唤起一个线程（_你也不知道等待队列首节点对应哪个线程，因此对用户来说似乎是随机唤醒的_）， 且无法指定唤醒哪一个线程，所以只有在多个执行相同任务的线程在并发运行时， 我们不关心哪一个线程被唤醒时，才会使用notify()
+
+**从设计的角度**：  
+因为wait和notify存在竞争关系，wait和notify的调用顺序必须被严格限定。  
+而且wait通常伴随着条件语句**if(A)wait()**，而notify则对应**A；notify（）**。同时，为了防止**虚假唤醒**一般将条件语句换成循环**while(A)wait()**  
+wait和notify用于线程通信，肯定是线程A调用if(A)wait()和线程B调用A；notify（）。  
+如果A；notify()和if(A)wait()可以被执行，将会出现**死等**的问题——A ;if(A) ; notify() wait() 最终的结果是wait()没有notify对它进行唤醒，线程一直阻塞在等待队列中。（死锁、死等导致任务无法被处理、相应内存一直被占用、造成**内存泄露**和**浪费线程资源**）
+
+
+
+#### sleep与wait
+sleep来自Thread类，而wait来自Object类。  
+sleep是线程的行为，而每个Object对象都可以关联一个monitor对象，因此wait/notify被设计属于Object。二者都声明了中断异常（throws InterruptedException），由于java天生就是多线程的，因此任何地方（实例方法、主方法）都可以调用Thread.sleep(xxx)，而默认调用方就是主线程。
+
+当然了，这些都是java层面的描述。二者的阻塞JVM底层都依赖**park（）函数**，这会导致线程放弃CPU被挂起。只不过wait搭配wait set使用，因此增加了释放锁的逻辑。而调用sleep时，JVM不关心当前线程是否持有锁，因此调用sleep并不会释放锁。  
+调用sleep或wait后，java线程处于wait等待状态。
+
+
+#### yield与join
+yield调用使得当前获得CPU的线程让出CPU资源，以便其他线程有机会抢占（有可能当前线程会再次抢占）。sleep(0)和yield()可以达到相同的效果。
+
+> 实现上，底层通常会使当前线程放弃CPU资源，同时加入同等优先级队列的末尾。对于和调用线程相同或者更高优先级的线程来说，yield方法给予他们一次运行的机会
+
+而join底层依靠wait/notify实现，使用场景：父线程需要等待子线程的结果即需要等待子线程运行结束。join方法本身也是一个同步方法，而**子线程对象**本身也是一个Object对象，具有相应的monitor。
+`son.join;`
+主线程中调用son.join（）底层相当于调用son.wait()，这里把son线程对象看作一个Object对象、一个对象锁。父线程调用完son.wait()后进入monitor关联的waitSet中。  
+以下的伪代码中，son有两层含义：子线程对象和monitor
+
+```java
+    public static void main(String[] args) {
+        synchronized (son){
+            while(son.isAlive()){
+                son.wait(0);
+            }
+        }
+    }
+
+```
+当son线程执行完毕，会唤醒父线程，同时isAlive()调用结果为false，父线程（主线程）退出等待状态。（notify的调用位于JVM源码中，join的java源码中只能找到wait的调用）
+
+
+#### interrupt
+jdk主要提供了三个中断相关方法，这里的中断指的是对java线程阻塞打断，如果一个线程正在正常执行，那么不会做出任何反映。
+
+【1】interrupt。在一个线程中调用另一个线程的interrupt()方法，即会向那个线程发出信号——线程**中断状态**已被设置（set为true）。至于那个线程何去何从，由具体的代码实现决定  
+【2】isIntercepted。用来判断当前线程的中断状态(true or false)  
+【3】interrupted。是个Thread的静态方法，用来**恢复中断初始状态**（检查中断标志，返回一个布尔值并清除中断状态，第二次调用时，中断状态已经被清除，返回false）——检查当前线程的中断标志并且清除(重置为非中断false)
+
+> interrupted底层调用了isIntercepted()方法，同时清除了标志位，实质上是返回currentThread()。isInterrupted()并且重置中断标志，这也是它作为一个静态方法存在的原因。
+
+底层，当一个线程被调用interrupt()方法时，JVM拿到这个线程对象（C++），然后插入**内存屏障**以保证该线程的中断状态的可见性，**修改线程对象的中断状态为true**。之后对该线程调用**unpark函数**将线程唤醒。  
+【1】如果这个线程阻塞在wait、yield、sleep等可中断的方法，线程被唤醒后将检查自身中断标记，如果为true则会抛出interruptException。  
+【2】如果线程仅仅是阻塞在synchronized对应的entryList，那么被唤醒后会再次产生获取锁，失败则进行进入阻塞状态，**不会响应中断**  
+【3】Lock.lock()方法和synchronized差不多，被唤醒后也会调用unsafe封装的park()继续阻塞。而lockInterruptibly被唤醒后则检查中断标记，并抛出异常。
+
+一般情况下，**抛出异常时，会清空/重置thread的interrupt标记**。
+
+总结：线程中断的底层实现中，实际上是将线程唤醒，但是线程如何响应则取决于此时的调用函数
+
+##### interrupt总结
+每个线程会有一个**中断标志位**，这个中断标志位是由JVM源码层面去维护的，java层面看不见这个标志位，当某个线程去调用这个interrupt方法的时候，本质上是对某个线程的标志位进行了一个置位操作，然后去唤醒一下这个线程。如果这个线程没有进入wait或者timed_wait的状态（这里的状态指的是java线程层面的），那么其实这个interrupt的调用是没有任何效果的。
+
+这个interrupt调用一般和两种行为进行搭配：【1】我们自己去轮询这个中断状态，然后做出相应的相应。【2】配合声明抛出中断异常的调用去使用，例如sleep、wait、以及JUC下lock的各种实现类支持的“可中断锁”去使用。  
+对于后者，一般都是将自己通过park()调用阻塞起来，而当我们调用interrupt之后，会额外对该线程执行一个unpark()调用。（park和unpark就是以线程为单位的调用），一个线程被unpark()唤醒之后一般也会做出不同的表现，如果是sleep()、wait()这类的调用，线程会检查一下中断标志，如果true则抛出异常并清除中断标志，而阻塞在synchronized同步队列的线程则是“认为自己被虚假唤醒”，于是继续调用park()进行阻塞状态。
+
+另外，由于所有线程如果拿到某一个线程对象的引用，都可以去调用interrupt方法，因此必须保证线程中断标志位的可见性，且修改这个标志也需要是同步的。其中**原子性**通过java层面的synchronize去保证，**可见性**则由内存屏障去保证。
+
+> JMM向我们保证：线程A对线程B调用interrupt() 线程B检测到中断事件发生 。说白了，JMM向我们保证，当一个线程对另一个线程调用interrupt，被中断对该操作一定是可见的。不会因为重排序而发生可见性问题。
+
+#### park/unpark
+LockSupport是Java6(JSR166-JUC)引入的一个类，用来**创建锁和其他同步工具类的基本线程阻塞原语**。底层是对unsafe类对应的park/unpark方法的封装，java实现阻塞与唤醒功能底层绝大多数都依赖了park函数（park底层调用了哪些系统调用和具体平台、操作系统有关）。  
+park/unpark更加贴近操作系统层面的阻塞与唤醒线程，不需要获取monitor，以线程为单位进行操作。  
+每个java线程底层都绑定了一个Parker对象，主要有三个字段：counter、condition和mutex  
+counter用于记录“许可”。  
+**当调用park时，这个变量置为了0；当调用unpark时，这个变量置为1**。（二进制置位）  
+（unpark提供的许可是一次性的，不能叠加，两个函数的调用使得count在0和1直接切换，底层依赖互斥量mutex 系统调用。当许可为0时，线程被挂起，直到再次获得许可）
+
+park和unpark的灵活之处在于，**unpark函数可以先于park调用**。比如线程B调用unpark函数，给线程A发了一个“许可”，那么当线程A调用park时，它发现已经有“许可”了，那么它会马上再继续运行。但是park()是**不可重入**的，如果一个线程连续2次调用LockSupport.park()，那么该线程一定会一直阻塞下去（调用的时候，如果资源为1则 不会阻塞线程，如果资源为0则会阻塞进程）
+
+相对于wait/notify，park与unpark的调用顺序不是固定的，而且是以线程为单位的，每个线程需要关联一个Parker对象。而wait需要关联到一个monitor对象的waitSet。park/unpark可以看作wait/notify实现的基础。
+
+> wait、notify、synchronized等底层依赖JVM源码级别的park/unpark实现，而java封装了park/unpark，其中用户可以直接使用lockSupport提供的park和unpark函数，而AQS框架实现阻塞与唤醒底层依赖了unsafe提供的park/unpark（也属于native方法，底层是c++提供的）
+
+
+
+## 5.理解Lock接口
+Lock是JUC包下提供的接口，定义了一次锁类型应该具有的行为。  
+Lock接口的意义就是把锁这个东西抽象为了一个对象拿到台面上来了，而不是像synchronized那样将锁这个东西透明化了。  
+提供Lock接口，使得一提到锁对象不再只是C++的objectMonitor对象，而也可以是Lock对应的reentrantLock、reentrantReadWriteLock等对象了。  
+Lock接口提供了与synchronized相似的行为，同时提供了一些额外的特性：  
+【1】非阻塞获取锁tryLock  
+【2】可响应中断的上锁方式lockInterruptibly  
+【3】超时获取锁，在指定的时间内没有获取锁将返回一个布尔值。
+
+另一方面，将Lock从底层抽象出来，也可以使得用户更好的监控锁的行为，如当前的owner是谁？锁是否被获取等。而且可以接着扩展用户子接口，来使得锁可以扩展出更多的行为，使得上锁操作更加灵活可控
+
+
+### synchronized与Lock（reentrantLock）对比
+Lock毕竟是一个接口，讨论还是需要具体到某一个实现类上的。以最常用的reentrantLock为例。  
+上面已经提到过Lock接口本身提供的synchronized不具备的特性：支持超时、非阻塞、响应中断、更好的扩展性  
+synchronized和reentrantLock都是可重入的，实际上AQS大多数锁都是可重入的，这可以在一定程度上避免死锁的发生  
+synchronized默认就是非公平的，而Lock只是定义了行为，实现类可以基于非公平和公平进行实现，这也反映基于Lock实现锁更加具有扩展性。
+
+synchronized实现线程通信时搭配wait以及monitor的waitSet,reentrantLock搭配condition对象和await方法。一个synchronized对应一个monitor，因此多个线程调用wait()后将会等待在同一个waitSet。而基于高层实现的reentrantLock可以创建多个condition对象，每个condition对应一个等待队列，因此不同的线程根据不同的等待条件，可以等待在不同的队列，可以使得线程唤醒更加精确。
+
+实际上synchronized的优点也不少：  
+【1】synchronized使得用户不需要关心上锁、解锁的逻辑，甚至不需要关心锁对象的存在，而我如果想使用reentrantLock，那么我必须显示创建一个对象，并且显示的lock和unlock。而且必须写在**try/finally**中，因为synchronized隐式帮我们释放锁，即使出现了**异常**，而reentrantLock使用的过程中出现异常，并且没有处理锁对象的释放，那么可能出现死锁。  
+【2】以concurrentHashMap 1.8为例，万物皆为monitor，因此可以把数组元素本身看作一个锁，而不需要向concurrentHashMap 1.7那样显示创建锁对象，并且锁的粒度更小，并发度更大。
+
+更深一层，synchronized和reentrantLock实现了相同的特性：可见性、原子性、有序性。  
+其中reentrantLock实现这些特性极大依赖于底层的AQS框架（AQS框架使得reentrantLock更加关注于如何实现可重入锁的逻辑而不是同步、阻塞等工作）  
+reentrantLock实现可见性和原子性，基于读写volatile变量和CAS指令，同时通过CAS修改锁变量保证原子性。
+
+> 实际上，抛开一些细节，reentrantLock可以看作对synchronized基于java代码的再次实现，一些实现逻辑十分相似，底层都离不开CAS加锁以及直接或间接地插入内存屏障。但是reentrantLock仅仅是Lock/AQS的冰山一角而已。synchronized中的可重入锁是透明的，它只是实现管程synchronized的一个组件，而reentrantLock则是被单独提取，提供给用户，出来以进行复用和扩展。
+
+### 理解AQS框架
+AQS abstract queued synchronized 抽象队列同步器，是用于实现锁以及其他同步组件的基础框架，内部实现了线程管理、同步状态管理与队列管理这些“无关性”代码。简化了**组件开发者**的实现工作——不用去关系线程排队、节点封装等底层细节，只需要去使用或重写框架指定的方法即可。  
+AQS的设计基于**模板方法设计模式**。
+
+队列同步器面向组件开发者，而组件则面向使用者/一般的程序员。同步器与组件分别为开发者和使用者屏蔽了不必要了解的细节。
+
+如果你想要定义一个自定义组件，仅需要：定义一个实现AQS的静态内部类，组合一个该类型的字段SYN，实现LOCK接口，并且全部委托给这个成员SYN实现即可。唯一需要做的就是：重写AQS中提供的钩子方法（如tryRelease、tryAcquire），同时使用AQS框架已经实现好的方法去实现对应功能（如setExclusiveOwnerThread、getState等）
 
 
 ## 5. 模式
