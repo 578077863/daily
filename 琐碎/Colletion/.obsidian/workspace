@@ -4,37 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "6d212d60b9cf9fa5",
-        "type": "split",
-        "children": [
-          {
-            "id": "0ee88563224c224e",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "java/JVM.md",
-                "mode": "source",
-                "backlinks": false,
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "5243af574ab9b0d0",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "java/JVM.md",
-                "mode": "source",
-                "backlinks": false,
-                "source": false
-              }
-            }
+        "id": "9246d9bc1444b256",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "设计模式/设计模式.md",
+            "mode": "source",
+            "backlinks": true,
+            "source": false
           }
-        ],
-        "direction": "horizontal"
+        }
       }
     ],
     "direction": "vertical"
@@ -61,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "设计模式",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -74,7 +54,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 400
+    "width": 411
   },
   "right": {
     "id": "3923309a8309e7d0",
@@ -90,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "java/JVM.md"
+                "file": "设计模式/设计模式.md"
               }
             }
           },
@@ -111,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "java/JVM.md",
+                "file": "设计模式/设计模式.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -128,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "java/JVM.md",
+                "file": "设计模式/设计模式.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -138,19 +118,19 @@
       }
     ],
     "direction": "horizontal",
-    "width": 346
+    "width": 298
   },
-  "active": "0ee88563224c224e",
+  "active": "9246d9bc1444b256",
   "lastOpenFiles": [
-    "java/JVM.md",
+    "设计模式/设计模式.md",
     "java/JUC.md",
     "java/JMM.md",
+    "java/JVM.md",
+    "背诵/笔记.md",
+    "Spring系列/Spring和SpringBoot.md",
+    "计算机网络/计算机网络.md",
     "java/Java基础.md",
-    "面试杂烩/面经.md",
-    "操作系统/操作系统.md",
-    "算法/链表.md",
-    "MIT/MIT6.830 2021.md",
-    "MySQL/MySQL.md",
-    "算法/动态规划.md"
+    "面试杂烩/玛德.md",
+    "MySQL/MySQL.md"
   ]
 }

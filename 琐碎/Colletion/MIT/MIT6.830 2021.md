@@ -279,3 +279,115 @@ Aggregate.java
 ```
 ## Lab3
 ### 3.1
+
+## Lab4
+迭代器在遍历时只能通过迭代器修改,否则将抛出异常,modcount对不上
+但flushAllPages要刷的可能很多,不可能这个方法中发现脏页,再flush这个方法中通过遍历去找这个脏页,所以用一个List装脏页,然后依次取脏页给flush这个方法,直接根据pid就可以找到对应的脏页,刷到磁盘中
+
+
+玛德,这个放page的是linkedList,自带LFU算法,每一次get都会改变page的位置
+```java
+    /**
+     * Flush all dirty pages to disk.
+     * NB: Be careful using this routine -- it writes dirty data to disk so will
+     *     break simpledb if running in NO STEAL mode.
+     */
+    public synchronized void flushAllPages() throws IOException {
+
+//
+//        for(Map.Entry<Integer,Page> entry : pages.entrySet()){
+//            Page page = entry.getValue();
+//            if(page.isDirty() != null){
+//                flushPage(page.getId());
+//            }
+//        }
+
+        List<Page> dirtyPage = new ArrayList<>();
+        for(Page page : pages.values()) {
+            if (page.isDirty() != null) {
+                dirtyPage.add(page);
+            }
+        }
+
+        for (int i = 0; i < dirtyPage.size(); i++) {
+            flushPage(dirtyPage.get(i).getId());
+        }
+    }
+
+    /** Remove the specific page id from the buffer pool.
+        Needed by the recovery manager to ensure that the
+        buffer pool doesn't keep a rolled back page in its
+        cache.
+        
+        Also used by B+ tree files to ensure that deleted pages
+        are removed from the cache so they can be reused safely
+    */
+    public synchronized void discardPage(PageId pid) {
+        // some code goes here
+        // not necessary for lab1
+    }
+
+    /**
+     * Flushes a certain page to disk
+     * @param pid an ID indicating the page to flush
+     */
+    private synchronized void flushPage(PageId pid) throws IOException {
+
+        Page page = pages.get(pid.hashCode());
+        DbFile dbFile = Database.getCatalog().getDatabaseFile(page.getId().getTableId());
+        dbFile.writePage(page);
+        page.markDirty(false,null);
+
+//        Page page = null;
+//        for(Map.Entry<Integer, Page> entry : pages.entrySet()) {
+//            Integer key = entry.getKey();
+//            if (key == pid.hashCode()) {
+//                page = entry.getValue();
+//                break;
+//            }
+//        }
+////
+//        DbFile file = Database.getCatalog().getDatabaseFile(page.getId().getTableId());
+////        //将脏页保存下来再刷入磁盘
+////        Database.getLogFile().logWrite(page.isDirty(), page.getBeforeImage(), page);
+////        Database.getLogFile().force();
+//        file.writePage(page);
+//        page.markDirty(false, null);
+    }
+
+    /** Write all pages of the specified transaction to disk.
+     */
+    public synchronized  void flushPages(TransactionId tid) throws IOException {
+
+        for(Page page : pages.values()){
+            flushPage(page.getId());
+        }
+//        for(Map.Entry<Integer,Page> entry : pages.entrySet()){
+//            Page page = entry.getValue();
+//
+//            page.setBeforeImage();
+//
+//            if(page.isDirty() == tid){
+//                flushPage(page.getId());
+//            }
+//        }
+    }
+```
+
+
+
+
+
+## 锁的粒度
+
+```java
+LockManager是由一个 ConcurrentHashMap<??,ConcurrentHashMap<TransactionId, PageLock>>维护的,
+
+?? 
+1.换为 PageId,就是页级锁
+2.换为 RecordId就是tuple锁
+
+开始写LockManager
+
+
+```

@@ -166,14 +166,493 @@ Java的线程是映射到操作系统的原生线程之上的，如果要阻塞�
 3. 实现Callable接口
  实现Callable接口，返回值通过FutureTask进行封装
 
- 
+
+第1和2种其实都一样,在Thread源码中, if(target != null){target.run;}  如果继承Thread就相当于重写了默认run方法,而传入Runnable实例,就相当于使用构造函数为Thread的runnable成员赋值
+
+
 **Java 线程调用 start->start0 这个本地方法，实际上会调用到 JVM_StartThread 方法，而 JVM_StartThread方法中会创建与平台相关的本地线程，该线程执行 Java 线程的 run 方法。**
 **创建线程只有一种方式就是构造Thread类,而实现线程的执行单元有两种方式**
 
 实现接口和继承Thread比较
+推荐使用实现runnable接口的方式，因为实现runnable接口本质上是完成“布置任务”的行为，可以减少“线程细节”与“任务”本身的耦合度——线程是载体，任务是主要关注点，**不是让某类线程绑定某个任务，而是产生一个任务后创建一个线程实例去执行**。
+
 实现接口会更好一些，因为:
 -   从共享资源来看，Runnable接口更适合（因为都是同一个Runnable实例）
 -   从继承角度看，Runnable更适合，因为接口可以多继承，类只能单继承，这样不利于扩展
+
+
+
+【3】以上两种方式很大程度上取决于runnable接口定义的行为，其中runnable接口规定的run方法有两个问题：**没有返回值、不能抛异常**。
+
+
+jdk5引入了callable接口
+>[Java中的Callable的返回值是怎么来的？ - 简书 (jianshu.com)](https://www.jianshu.com/p/8f1cddc08747)
+
+`    V call() throws Exception;`
+callable接口规范的call方法允许返回值和异常。
+而futureTask类似一个**适配器**，它有一个callable成员，同时（间接）实现了runnable接口，而run方法实现了本质就是call方法的调用。
+同时futureTask提供了get方法，是一个阻塞调用，一旦得到结果，方法便返回。
+
+如此，实现callable接口可以算是第三种实现线程的方式：call方法定义任务、thread.start()启动线程，futureTask.get()拿到结果或异常
+```java
+        FutureTask<Integer> futureTask = new FutureTask<>(() -> {//布置任务
+            throw new IndexOutOfBoundsException("233");
+        });
+        new Thread(futureTask).start(); //线程启动
+        System.out.println(futureTask.get());//阻塞，直到返回结果
+
+
+```
+如果正常执行，get（）会得到返回值，如果出现异常，最终get()会抛出executionException。
+
+>run方法中调用了call()，而将返回值和异常对象都保存到成员字段outcome中，在get()中判断outcome的类型，如果是结果就返回否则就抛出异常
+
+总结：callable/call()计算出结果，而通过futureTask/get()向外暴露/公布结果。futureTask表示一个异步运算的结果，对这个异步运算的任务可以等待获取、判断是否完成以及取消任务。
+
+注意：同一个callable()实例对应的任务只会执行一次，不会执行第二遍
+
+
+>每个futureTask实例都有状态，没当一个futureTask被实例化后，状态为NEW，而执行完毕状态就变为normal。只有当futureTask状态为NEW时run方法才会执行
+
+
+**我的理解**:本质就是FutureTask继承RunnableFuture接口,而该接口又继承了Runnable和Future两个接口,继承Runnable接口目的是能让Thread调用start开启一个线程,而继承Future目的是Future接口中包含获取返回值结果的方法`get`如果线程没有执行完任务，调用该方法会阻塞当前线程,以及取消执行任务`cancel`,查看任务是否执行完毕`isDone`,以及任务是否取消`isCancelled`。
+
+在实现FutureTask类的run方法中执行了Callable的call方法,将其返回值赋给成员变量result,当使用get方法时,会判断callable任务的状态,如果没有完成，那么阻塞当前线程，等待完成，如果处于已经取消状态直接抛出异常，如果已经执行完毕，将结果返回。
+  
+
+FutureTask接口实现的比较复杂，阅读源码理解起来相对困难，但是本质上，FutureTask接口是一个生产者消费者模式，如果生产者没有生产完，那么会阻塞消费者，将消费者放到一个阻塞队列中，生产者生产完后，会唤醒阻塞的消费者去消费结果，大概原理就是这样，下面是一个简易版的实现。
+```java
+
+class MyRunnableFuture<T> implements RunnableFuture<T> {
+
+    private Callable<String> callable;
+
+    private Object returnObj;
+
+    private ReentrantLock lock = new ReentrantLock();
+
+    private Condition getCondition = lock.newCondition();
+
+    public MyRunnableFuture(Callable<String> callable) {
+        this.callable = callable;
+    }
+
+    @SneakyThrows
+    @Override
+    public void run() {
+        this.returnObj = this.callable.call();
+        try {
+            lock.lock();
+            this.getCondition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public boolean isCancelled() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public boolean isDone() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public T get() throws InterruptedException, ExecutionException {
+        if (returnObj == null) {
+            try {
+                lock.lock();
+                this.getCondition.await();
+            } finally {
+                lock.unlock();
+            }
+        }
+        return (T) returnObj;
+    }
+
+    @Override
+    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        throw new NotImplementedException();
+    }
+}
+```
+
+
+
+
+#### start与run
+调用start（）方法后，java线程进入runnable状态，而jvm会为之创建线程并且调用run()方法。（如果用户调用run()那么就是一个普通的方法调用，而如果调用start()就是委托JVM创建一个线程，而JVM为委托OS创建一个线程，最终将执行run(）方法的任务交给子线程而不是主线程）
+
+#### 为什么java只有runnable状态？
+操作系统层面，处于running状态的线程如果放弃CPU则进入runnable状态，而java为我们屏蔽了线程切换（CPU调度）的细节，我们只需要知道创建一个线程，然后调用start()方法该线程进入runnable状态即可。如果将runnable拆分为两个状态，那么就相当于打破了操作系统和虚拟机之间的隔离性，违背了jvm设计的初衷，本末倒置了。
+java线程执行的过程中，总是不断的发生CPU调度，但是对于用户是透明的，因为java屏蔽了这一切的细节，对于用户来说，一旦一个线程被start()调用，那么它便是runnable的。
+
+
+#### 线程池
+线程池的核心作用：
+【1】通过预先创建线程和复用线程来避免频繁的创建和销毁线程，创建、销毁线程底层涉及系统调用，系统调用会造成CPU上下文切换，我们的目标是让CPU更多去执行用户代码，而减少执行系统代码，提升CPU的利用率（执行用户代码的吞吐量）
+【2】时延，一个请求/任务到达如果还需要先申请内存、创建线程那么这将占用一定时间，如果任务到达直接就可以对应一个线程去执行，那么响应时间将会大大缩短，用户体验上升
+【3】统一管理，以前线程都是临时工，每次使用都是“一次性”的，而使用线程池可以集中管理一组线程，并且可以统一分析、调优和监控。
+
+一开始，我们通过继承thread重写run方法完成线程的设计。但是这是耦合的，因为thread不但包含线程开启、销毁等与线程调度、生命周期相关的方法，而且通过重写run方法，直接将线程执行逻辑嵌入了一类方法中。而使用runnable方法单独规划任务有一定改善，thread类通过组合runnable类型成员，run方法本质上执行的是外界传入的runnable的run方法。
+但是以上两种方式，线程本身和任务本身都由用户直接管理，引入线程后，线程交给线程池对象管理，我们只需要设计任务对象本身即可。
+
+**简述线程池原理**
+线程池设计的核心思想：==将任务单元与执行单元相分离，用户负责提交任务，而线程池负责“调度”线程执行任务。==
+用户向线程池中提交一个任务，这个任务如果是无返回值的（runnable），那么用户就不用管别的了，如果是由返回值的（callable），那么线程池会给用户返回一个接口（future），用户可以使用这个接口获得异步计算的结果。
+线程池收到用户提交的任务后，如果池中线程数量没有达到核心线程数，那么就创建新线程去执行任务，创建新线程后直接去执行任务。线程执行完毕后就会从工作队列中取任务，工作队列中没有任务线程就会阻塞
+>先判断是否达到coreSize，因此是否有空闲线程都会创建。“取出并执行”其实就是工作线程去调用任务的run()，因为线程已经“跑起来”了（线程池创建一个线程start()后JVM为其分配OS线程并且调用run()方法），而它的run方法就是一个循环，去扫描工作队列提交的任务。一个核心线程被创建后向去执行一个被提交的任务，然后就去执行扫描队列的循环。非核心线程被创建后也是先执行“入队失败”的任务，然后去扫描工作队列
+
+如果一任务提交到池中，但是线程池的线程数量已经达到核心线程数，这个任务将被提交到工作队列，后续空闲线程会从工作队列取出并执行。一旦队列满了（入队offer失败）则尝试创建非核心线程，如果无法继续创建线程，将对当前任务执行某项拒绝策略。
+
+简单来说：线程池中的线程是“懒创建”的，每个线程创建后总是先执行一个提交的任务，随后去扫描工作队列——工作队列满了，核心线程忙不过来了就创建一些非核心线程，如果无法创建那么必须要对当前的任务一个处理办法，那就是执行拒绝策略
+
+
+>当队列为空时，核心线程和非核心线程其实都是阻塞在工作队列的，一旦有任务添加，便会唤醒线程（然后抢着执行任务，加锁），其中非核心线程的阻塞是超时阻塞，如果一段时间没有任务到达那么非核心线程将被超时唤醒，CAS减少线程数量，如果成功那么这个线程就被释放了（线程的run方法返回，同时指向线程对象的引用被移出线程池维护线程引用的哈希表），失败则说明“已经有线程被销毁了”，那么继续新一轮阻塞（下一轮循环）
+
+
+```JAVA
+if (isRunning(c) && workQueue.offer(command)) {
+    int recheck = ctl.get();
+    if (! isRunning(recheck) && remove(command))
+        reject(command);
+    else if (workerCountOf(recheck) == 0)
+        addWorker(null, false);
+}
+else if (!addWorker(command, false))
+    reject(command);
+
+```
+
+源码中，这里还有一个细节：  
+如果向队列中放入一个任务，但是队列已经满了，则尝试创建非核心线程去执行当前任务，如果创建失败则说明已经达到最大线程数量，执行拒绝策略。  
+**当一个任务成功放入队列之后，会执行一个核实操作（再次检查）**，如果发现此时线程池已经进入非running状态，则尝试移除这个任务，从队列移除成功后则执行拒绝策略。  
+如果当前线程池处于running状态或者移除command失败（可能被别的线程拿走了），且此时的工作线程数量为0，这时线程池执行一个保守策略，向线程池中放入一个非核心线程。  
+**（以上情况，可能在coreSize=0的线程池遇到，例如newCachedThreadPoolExecutor创建一个核心线程数为0的线程池，每次提交任务都会创建一个非核心线程）**
+
+Worker本身是对thread和task的封装，可以看作高层次的thread
+
+```JAVA
+
+Worker(Runnable firstTask) {
+    setState(-1); // inhibit interrupts until runWorker
+    this.firstTask = firstTask;
+    this.thread = getThreadFactory().newThread(this);
+}
+```
+
+如果向工作线程队列，成功添加worker实例，则调用worker.thead的start()方法（委托底层分配一个载体去运行），而run方法则是任务的执行逻辑。（执行用户传入的runnable任务或者callable任务）
+
+```JAVA
+if (workerAdded) {
+    t.start();
+    workerStarted = true;
+}
+
+    
+```
+
+
+##### 线程池核心参数
+
+【1】corePoolSize：核心线程数，也就是常驻线程池的线程最大数量  
+【2】maximumPoolSize：最大线程数，线程池的最大线程数，包含核心线程与非核心线程  
+【3】keepAliveTime:非核心线程的最大存活时间  
+【4】timeUnit：单位，是一个枚举，可以指定keepAliveTime的单位  
+【5】workQueue：工作队列，通常是阻塞队列  
+【6】threadFactory：线程工厂，通过工厂模式创建线程，一般使用executors提供的默认工厂，可以指定线程命名规则等  
+【7】rejectedExecutionHandler：拒绝策略，当任务无法被处理的处理方案，一般使用ThreadPoolExecutor提供的静态内部类
+
+
+##### 拒绝策略类型
+
+ThreadPoolExecutor提供了四种拒绝策略，同时还可以实现RejectedExecutionHandler接口自定义拒绝策略。  
+【1】丢弃最老的（出队最老的，然后重新提交任务）
+
+```java
+                e.getQueue().poll();
+                e.execute(r);
+
+    
+```
+
+【2】丢弃当前任务（对当前任务什么也不做，相当于丢弃了）
+
+```java
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+        }
+
+    
+```
+
+【3】直接抛出异常
+
+```java
+            throw new RejectedExecutionException("Task " + r.toString() +
+                                                 " rejected from " +
+                                                 e.toString());
+
+    
+```
+
+【4】让提交任务的线程去执行（任务提交相当于直接去执行这个任务了，相当于在main方法中调用线程对象的run方法）
+
+```java
+                r.run();
+
+    
+```
+
+
+
+##### 工作队列
+
+工作队列首先是一个队列，它实现了队列的接口，因此它具有先进先出的行为。  
+而工作队列实现了阻塞队列的接口，是阻塞的：当队列空获取元素操作将被阻塞。当队列满，添加元素的操作会被阻塞。如果是单线程，使用阻塞队列不就会死锁了？因此阻塞队列是基于多线程环境下使用的，而且访问队列是需要加锁的。（具体细节还有看具体的实现）
+
+> queue接口搜索jdk5之后的接口，是collection的子接口，与list和set同级，规定了队列先进先出的行为offer/poll/peek，而blockingQueue是queue的子接口，提供了两个阻塞的行为put/take  
+> （线程池中，向工作队列添加元素时使用offer，非阻塞，添加失败有返回值）
+
+jdk提供了  
+【1】基于数组的阻塞队列arrayBlockingQueue  
+【2】基于链表的阻塞队列linkedBlockingQueue  
+【3】不存储元素的阻塞队列（一旦put就会阻塞等待另一个线程take，因此称为同步队列）synchronousQueue  
+【4】支持优先级排序的队列priorityBlockingQueue（相当于优先队列的阻塞实现）  
+【5】使用优先级队列实现的延迟无界阻塞队列delayQueue（每次取都会计算时间值，根据时间值判断是否允许取出，不到时间就阻塞），可以实现定时任务、数据缓存、设置过期值等。
+
+推荐使用构造函数创建线程池对象的一部分原因，就是因为默认创建的线程池对象的工作队列都是无界的，如果短时间内提交过多任务，任务被无限地保存在内存的队列中——**任务不会被拒绝，内存可能会被耗尽**。
+
+##### 写一个阻塞队列
+
+阻塞队列其实就是普通的队列+锁+通信。一旦队列满了，线程就阻塞。一旦队列有空闲，阻塞线程就被唤醒。
+
+```java
+    private Object[] array;
+
+    private int tail;
+    private int head;
+    private int cap;
+
+    private ReentrantLock lock =new ReentrantLock();
+    private Condition full = lock.newCondition();
+    private Condition empty = lock.newCondition();
+
+    
+```
+
+这里使用环形数组作为底层数据结构，并且使用两个指针指向首位，使用两个condition标志“队列空”和“队列满”，使用一个全局锁管理对队列的访问
+
+```java
+    public void put(E e) {
+     lock.lock();
+     try {
+         while ((tail+1)%cap==tail){//队列满，阻塞
+             try {
+                 full.await();
+             } catch (InterruptedException e1) {
+                 e1.printStackTrace();
+             }
+         }
+         array[tail]=e;
+         tail=(tail+1)%cap;
+         //队列不空，唤醒因为empty而阻塞的线程
+         empty.signal();
+     }finally {
+         lock.unlock();
+     }
+    }
+
+    
+```
+
+put对队列插入的过程看作一个“事务”，需要保证线程安全。如果队列已经满了就阻塞，否则插入并唤醒“空”条件下阻塞的线程
+
+```java
+    public E take() {
+        lock.lock();
+        try {
+            while (head==tail){
+                try {
+                    empty.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            E res= (E) array[head];
+            array[head]=null;
+            head=(head+1)%cap;
+            //不满了，唤醒full条件的阻塞线程
+            full.signal();
+            return res;
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    
+```
+
+take方法一个道理，不再赘述
+
+```java
+    public int size() {
+        lock.lock();
+        try {
+            return (tail-head+cap)%cap;
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    
+```
+
+查询size也是一个事务，当然了使用一个变量实时保存size也是可以的。
+
+
+##### 线程池的几种类型
+
+说是线程池类型，其实就是工具类executors为我们提供的、预设好的线程池的构造方法。  
+【1】fixedThreadPool  
+工作线程是固定的，也就是**核心线程数等于最大线程数**，指定多少那么线程池最多就只能创建多少。核心线程数+工作队列size（）就是最大任务数量。阻塞队列是linkedBlockingQueue，是无界的（默认大小是int最大值），适合负载比较大的服务器，为了资源合理利用需要现在线程数量。
+
+> 无界队列导致的问题：如果一个任务执行时间特别长，那么队列积攒的任务将越来越多，导致内存占用飙升最终导致OOM。
+
+【2】singleThreadExecutor  
+线程中只有一个线程，相当于fixedThreadPool的单线程版本，适用于串行执行任务的场景。  
+【3】scheduledThreadPool  
+在给定的延迟后执行任务，基于delayWorkQueue。适用于周期性执行任务的场景。  
+该线程池也称为**定时线程池**，实现类实现了scheduledExecutorService接口，其中schedule方法可以延迟执行一个任务，可以执行一个runnable或callable任务。  
+scheduleAtFixedRate方法可以指定一个初始延迟和一个周期，可以用于**实现周期任务**。scheduleWithFixedDelay方法，按照延迟执行周期任务（前一个是到点就执行，这个是执行完毕后必须延迟一一段时间才能继续执行）
+
+> scheduledThreadPool底层，任务被提交到延迟队列（delayWorkQueue），延迟队列内部封装的就是一个线程安全的、阻塞的优先队列，其中根据到期时间排序，如果时间相同就根据提交顺序排序。  
+> 任务到期就被线程取出去执行，如果执行结束且属于定时任务，又会重新设置到期时间放入队列。工作线程从队头（开始时间最早的元素）里拿元素，如果执行时间不到线程就阻塞，直到执行时间达到，任务才会出队被执行。  
+> 一个定时任务包含：任务开始/定时到期时间、任务执行的间隔、入队序列号，定时任务继承了futureTask，使得任务可以被异步执行和获取结果。（定时任务比普通任务多出了更多功能，例如可以被多次执行、延时执行、定时执行等）
+
+【4】CashedThreadPool  
+**核心线程数量为0，而且不限制最大线程数量，空闲时间60秒，基于同步队列。**  
+这表示每当任务到达，就会提交到同步队列，而创建后的线程总是阻塞在同步队列等待任务到达，一旦超时空闲时间就会回收，因此长时间保存空闲的线程不会占用资源。
+
+但是如果任务执行的很慢，而任务提交的快，将会创建大量的线程，而这些线程都不是空闲的线程，占用资源，极端情况下内存资源和CPU资源将被极大消耗。
+
+适用场景：**并发执行大量短小的任务**。
+
+> CPU密集型线程应该配置少一些线程，因为CPU切换十分频繁，少量的线程可以提升CPU利用率。而IO密集型线程应该配置多一点线程，因为一些线程因为等待IO而放弃CPU资源，那么CPU将不被这些状态下的线程利用，因此需要多分配一些线程。  
+> fixedThreadPool适合处理CPU密集型的任务，确保CPU在长期被worker线程使用的情况下，尽可能少的分配线程——适用执行长期的任务。不适合IO密集型场景，因为会堆积大量任务导致内存占用飙升。
+
+线程池中线程数量的确定需要参考CPU数量和应用类型（设CPU数量为N）：  
+【1】CPU密集型，少量线程数可以减少线程切换带来的代价，线程数量为N+1  
+【2】IO密集型，多一些线程可以防止CPU空闲，设置为2N+1  
+估算公式：最佳线程数目=（（线程等待CPU时间+线程获得CPU的时间）/线程获得CPU时间）X CPU数目。（即CPU数目 X （等待CPU时间/占用CPU时间+1））  
+线程等待时间占比越高，需要越多线程，CPU持有时间越多，需要越少线程。
+
+##### 线程池异常处理
+
+**线程之间的异常是独立的，主线程无法捕获子线程抛出的（未捕获/未处理）异常**，而这个异常最终会交由JVM处理——打印堆栈信息。而基于call()可以捕获异常，futureTask封装这个异常。
+
+```java
+        pool.submit(()->{	//异常被线程池内部捕获，不输出
+            throw new IndexOutOfBoundsException();
+        });
+        pool.execute(()->{	//异常交给JVM处理，打印堆栈信息
+            throw new IndexOutOfBoundsException();
+        });
+
+    
+```
+
+execute中异常堆栈信息将被打印在控制台（因为run()不支持抛异常），而submit则可以捕获异常（call()支持抛异常）,因为submit接收的是callable实例，而execute接收的是runnable实例。futureTask是一个适配器，它是runnable与callable的一个转接口，其中它对runnable中run方法的实现中，使用try/catch包裹了call()调用。
+
+```java
+try {
+    result = c.call(); 保存执行的结果
+    ran = true; 保存执行状态
+} catch (Throwable ex) {
+    result = null;
+    ran = false;
+    setException(ex); 捕获子任务中的异常
+}
+
+    
+```
+
+因此可以使用返回的futureTask实例的get方法来获得异常信息。
+
+> 也就是说，虽然两个线程之间不能传递异常，但是子线程可以捕获call()抛出的异常，并将异常信息保存在futureTask的成员成员中，而主线程可以拿到futureTask的引用，当futureTask调用get（）方法一旦发现子线程产生了异常，那么futureTask就抛出异常（相当于子线程的代理人），以此告知主线程：子线程出现异常
+
+以上强调的实际上是“线程未捕获的异常”，类似在main函数中抛异常，然后主线程未捕获处理的异常，这个时候JVM会处理这个**未处理/捕获异常**，如打印这个异常的堆栈信息。因此封装到futureTask的异常一定是call()方法中未经过捕获的异常，而我们使用execute走的仍然是给JVM处理这个未捕获异常的逻辑即打印堆栈信息（因为run方法中如果出现编译异常一定是需要处理的，如果是运行时异常，直接就抛给JVM了）。
+
+也可以为worker线程设置**未捕获异常处理器**
+
+```java
+ExecutorService threadPool = Executors.newFixedThreadPool(1, r -> {
+    Thread t = new Thread(r);
+    t.setUncaughtExceptionHandler(
+            (t1, e) -> System.out.println(t1.getName() + "线程抛出的异常"+e));
+    return t;
+});
+
+    
+```
+
+第二个参数使用了匿名函数，其实是接口threadFactory的实现类，该接口只有一个方法newThread（）  
+uncaughtExceptionHandler是thread类的一个成员属性，默认为null，通过实例方法setUncaughtExceptionHandler来设置
+
+> 在Thread中，Java提供了一个setUncaughtExceptionHandler的方法来设置线程的异常处理函数，你可以把异常处理函数传进去，**当发生线程的未捕获异常的时候，由JVM来回调执行**
+
+另一种方式：  
+**重写threadPoolExecutor的afterExecutor方法，处理传递的异常引用**
+
+```java
+public class ThreadReview extends ThreadPoolExecutor{ 
+// 相当于通过继承，扩充了方法，加强了原实现类
+    public ThreadReview(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+    }
+    @Override
+    protected void afterExecute(Runnable r, Throwable t) {
+    //后处理函数，该方法是ThreadPoolExecutor提供的构造方法/模板方法
+        if(t ==null&& r instanceof Future<?> ){
+            try {
+                Object res = ((Future) r).get();
+            } catch (Exception e) {
+                t=e;
+                Thread.currentThread().interrupt();
+            }
+        }
+        if(t!=null) System.out.println(t.getMessage());
+    }
+}
+
+    
+```
+
+> 注意，一旦线程池某个线程出现异常，线程池会释放这个线程，然后再创建一个新的（非核心）线程放入池中（这个线程创建后没有任务执行，直接去扫描同步队列）
+
+
+##### 细节
+
+###### execute与submit
+
+execute()是上层接口executor提供的方法，而submit()是字接口executorService提供的方法。  
+其中execute()接受一个任务实例（runnable）且没有返回值。而submit()方法具有返回值，是用来接收callable实例的，返回一个futureTask对象，用户可以使用该对象获取异步结果。（阻塞调用）
+
+##### 线程池状态
+
+处于running状态的线程池可以正常提供服务（接收任务提交），当调用shutdown()时变为shutdown状态，而调用shutdownNow则变为stop状态。
+
+shutdown状态下的线程池不会接收新的任务（对新任务执行拒绝策略），但是会继续处理剩余的任务。当池中任务为空（线程执行任务完毕且队列为空）则进入tidying状态。  
+而stop状态下的线程池（shutdownNow），会中断所有正在执行的任务，丢弃未执行的任务，然后进入tidying状态。  
+进入tidying状态后，表示所有任务已经终止，且没有剩余的任务需要执行。调用terminate()后进入terminated状态表示线程池彻底关闭
+
+> 调用shutdown方法后，如果所有线程都被阻塞，会唤醒所有阻塞的线程，线程判断线程池状态为shutdown便主动销毁。否则如果存在正在执行的任务，则等待任务执行完毕后的线程销毁时向阻塞线程发送中断信号。
 
 
 ### 4.3 基础线程机制
@@ -205,6 +684,12 @@ sleep() 可能会抛出 InterruptedException，因为异常不能跨线程传播
 
 
 ### 4.5 synchronized及锁升级
+
+```markdown
+header中hashcode是类似懒加载的模式，对象被创建时在header中的值是0，第一次被调用的时候才会计算出值，后续每次调用都是这个值，当然这是在没重写hashcode方法的前提下。
+另外对象刚被创建的时候，header中不一定会存hashcode，比如使用jvm命令禁用偏向锁，又或者在偏向锁期间发生锁批量撤销，都会导致创建的对象直接分配轻量级锁，而轻量级锁的header只存了lock record地址和锁标志位，hashcode只是间接存储。
+```
+
 jdk1.6的优化是：
 1. 锁升级机制
 2. 锁消除。一些框架采用保守策略，将程序基于[线程安全](https://so.csdn.net/so/search?q=%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8&spm=1001.2101.3001.7020)实现，锁消除是一种编译器优化，通过逃逸分析消除部分无必要的同步代码。
@@ -489,8 +974,190 @@ AQS的设计基于**模板方法设计模式**。
 如果你想要定义一个自定义组件，仅需要：定义一个实现AQS的静态内部类，组合一个该类型的字段SYN，实现LOCK接口，并且全部委托给这个成员SYN实现即可。唯一需要做的就是：重写AQS中提供的钩子方法（如tryRelease、tryAcquire），同时使用AQS框架已经实现好的方法去实现对应功能（如setExclusiveOwnerThread、getState等）
 
 
-## 5. 模式
+## 5. AQS
+
+```JAVA
+    // 共享模式下等待的标记
+    static final Node SHARED = new Node();
+    // 独占模式下等待的标记
+    static final Node EXCLUSIVE = null;
+
+    // 线程的等待状态 表示线程已经被取消
+    static final int CANCELLED =  1;
+    // 线程的等待状态 表示后继线程需要被唤醒
+    static final int SIGNAL    = -1;
+    // 线程的等待状态 表示线程在Condtion上
+    static final int CONDITION = -2;
+
+    // 表示下一个acquireShared需要无条件的传播
+    static final int PROPAGATE = -3;
+
+之所以初始化为0而不是-1，是为了在release()方法里去区分是否需要唤醒后继节点：
+当前线程释放资源之后，去唤醒后继节点时，判断条件是！=0的，也就是说，对于一个没有后继节点的节点(状态为0就说明没有后继节点，因为如果有后继节点的话，前驱节点的状态就会被设置为-1)来说，是不需要去唤醒后继节点的
+
+    /**
+     * 链接到等在等待条件上的下一个节点,或特殊的值SHARED,因为条件队列只有在独占模式时才能被访问,
+     * 所以我们只需要一个简单的连接队列在等待的时候保存节点,然后把它们转移到队列中重新获取
+     * 因为条件只能是独占性的,我们通过使用特殊的值来表示共享模式
+     */
+    Node nextWaiter;
 
 
-# 6. 琐碎
 
+    /**
+     * 如果节点处于共享模式下等待直接返回true
+     */
+    final boolean isShared() {
+        return nextWaiter == SHARED;
+    }
+
+    /**
+     * 返回当前节点的前驱节点,如果为空,直接抛出空指针异常
+     */
+    final Node predecessor() throws NullPointerException {
+        Node p = prev;
+        if (p == null)
+            throw new NullPointerException();
+        else
+            return p;
+    }
+
+
+
+
+
+
+
+    public final void acquire(int arg) {
+        if (!tryAcquire(arg) &&
+            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+            selfInterrupt();
+    }
+
+
+/*
+
+*/
+
+```
+
+```markdown
+
+获取资源失败,则 进入 addWaiter
+
+在 addWaiter(Node mode)方法中,第一步就是创建一个Node对象,将当前线程和独占模式赋给创建的Node对象
+
+判断当前尾结点是否为空,若不为空,尝试CAS将自己设置为尾结点,若成功则返回 node对象; 若设置失败则进入 enq(node)方法中
+若尾结点为空,直接进入enq方法
+
+在enq(node)方法中, 先判断tail节点是否存在,若不存在则CAS设置一个空的头结点,然后设置tail等于head
+若tail节点存在,则尝试将当前节点设置为尾结点,成功则返回,失败则再一轮循环,直至成功为止
+
+
+
+拿到 node对象后,进入 acquireQueued方法, 首先拿到当前 node对象的前一个节点, 若前一个节点是头结点(主要是第一次添加进链表的时候会创建一个空节点当头结点和尾结点)并且当前尝试获取资源成功,那么就将当前node对象设置为头结点,(前一个节点的next设置为null), 返回 interrupted 的值,因为没阻塞前就获得了资源,所以该值为false
+
+若前一个节点不为头结点或获取资源失败,则调用 shouldParkAfterFailedAcquire(前一个节点,当前节点),这个方法的功能是保证当前节点的唤醒是有前驱结点来负责
+
+进入该方法后,首先是拿到前驱节点的状态,若前驱节点的状态为 signal,这表示已经通知了前驱结点要释放资源的时候通知自己,这时候当前线程就可以安心进入阻塞状态.所以直接返回true
+
+若前驱结点的状态 > 0,这表明前驱结点取消了,这时候就要一直往前找,找到一个处于正常等待的节点,并排在它的后边, 然后返回false
+若前驱结点的状态 不是 > 0, 那么说明是正常状态的节点,调用CAS,将其状态变为signal,返回false
+此处有几种情况需要讨论:
+1.若CAS设为signal前,前驱结点状态变化了,怎么办?
+结果是失败,刚才说了,进入该方法是第一步就是拿到前驱结点的状态,CAS判断的原始值就是进入该方法时前驱结点的状态,只有状态不变才有可能CAS成功
+
+2.若CAS成功后,当前线程还没有进入阻塞,当前驱结点又刚好释放了,这种情况怎么办?
+不急,待会看看前驱结点释放时的行为我们就知道了
+
+3.若CAS成功后,当前节点进入阻塞,这种情况和第2种其实都一样,往下看就知道
+
+只有判断前驱结点状态为signal才可以调用 parkAndCheckInterrupt这个方法,这个方法就是阻塞当前线程
+当前线程被唤醒后,就会返回 Thread.interrupted(). 在acquireQueue方法中(这个方法只会返回是否被 interrupt),调用了parkAndCheckInterrupt方法进行阻塞,唤醒后还是一套流程,前驱结点是头结点并且自己能成功拿到资源,那就返回interrupt的值
+
+```
+
+```markdown
+在acquireQueued方法中,线程只有两个结果,一个是达到任务运行的条件,另一个是阻塞
+
+若是发现当前轮次无法满足其条件,就会调用shouldParkAfterFailedAcquire方法,
+调用该方法还是只有三个结果,一个是返回true,两个是返回false
+
+
+
+
+
+
+
+[Java AQS unparkSuccessor 方法中for循环为什么是从tail开始而不_跳墙网 (tqwba.com)](https://www.tqwba.com/x_d/jishu/297947.html)
+在该段方法中，将当前节点置于尾部使用了CAS来保证线程安全，但是请注意：**在if语句块中的代码并没有使用任何手段来保证线程安全！**
+
+也就是说，在高并发情况下，可能会出现这种情况：
+
+(当了尾结点,就是成功入队)
+线程A通过CAS进入if语句块之后，发生上下文切换，此时线程B同样执行了该方法，并且执行完毕。然后线程C调用了`unparkSuccessor`方法。
+
+**假如是从头到尾的遍历形式，线程A的next指针此时还是null！也就是说，会出现后续节点被漏掉的情况。**
+
+从头部遍历会出现这种问题的原因我们找到了，最后我们再来说说为什么从尾部遍历不会出现这种问题呢？
+
+其最根本的原因在于：  
+`node.prev = t;`先于CAS执行，也就是说，你在将当前节点置为尾部之前就已经把前驱节点赋值了，自然不会出现prev=null的情况
+```
+
+
+
+```markdown
+AQS支持两种获取资源的模式,一种是独占模式,另一种是共享模式
+
+AQS中有个Node类,每个Node对象都包含了节点封装的线程,指向前后的指针,节点的等待状态
+
+
+首先看获取同步资源的方法 acquire(int arg)
+
+if(!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg)){
+	selfInterrupt();
+}
+
+如果获取同步资源失败,那么就需要
+1.调用addWaiter将当前线程封装成node节点加入等待队列中,返回将该节点返回
+如何加入等待队列?
+具体实现就是 先获取当前尾结点,判断是否为空:
+若队列为空或者通过CAS设置尾结点失败,那么会通过enq()方法死循环,直至设置尾结点成功为止
+
+2.拿到node节点后放进 acquireQueued方法中,该方法只有三种结果:
+	1.当前节点的前驱结点是头结点并且尝试获取共享资源成功,那么当前节点将成为头结点,避免线程阻塞.
+	  **为什么要按队头到队尾的顺序唤醒呢?**
+	  因为获取同步资源成功后,当前节点将会成为头结点,这样一来就可能导致节点丢失的问题,所以必须前节点为头 
+      结点才行
+	2.如果当前节点的前驱结点不是头结点或者获取共享资源失败,那么将会调用shouldParkAfterFailedAcquire() 
+      方法，判断线程能否进行阻塞，当线程能够被阻塞时，将会调用parkAndCheckInterrupt()方法阻塞线程
+
+	  shouldParkAfterFailedAcquire(前驱结点,当前节点),该方法里面分3种情况,以两种结果呈现回来
+		  1.只有确认了前驱结点的状态为signal,这意味着当前节点的唤醒已经有结点负责了,可以安心进入阻塞
+		  2.若当前节点的前驱结点状态为cancelled,那么就需要不断往前寻找状态不为cancelled的节 点,将自己 
+            放在该节点后面,然后返回false
+		  3.前驱结点状态不为cancelled,则用CAS将其状态设为signal,该过程可能失败,所以还是返回false
+
+	  当返回true,这意味着当前线程可以进入阻塞,调用parkAndCheckInterrupt,该方法会返回线程的中断标识
+	  
+	3.如果线程在执行该方法时出现异常,那么就会调用cancelAcquire()方法
+	  该方法首先是从当前节点往前遍历,记录下第一个遇到的状态不为cancelled的节点,修改自身状态为cancelled
+
+	  进入判断流程: 若当前节点是尾结点,则通过CAS将尾指针指向刚才记录的节点,若CAS成功,则将刚才记录的节 
+      点的后继指针通过CAS设置为null;
+	  若当前节点不是尾结点,则判断下当前节点的前驱结点是不是头结点,若不是头结点,则通过CAS将前驱结点的后 
+      继指针指向当前节点的后继结点; 若是头结点,则调用unparkSusscessor(node)方法唤醒后继结点,让他来剔 
+      除当前节点
+
+
+
+释放节点调用release方法,若tryRelease方法成功,则判断一下头结点是否存在并且判断是否存在后继结点也就是其状态是否不等于0,若成立则调用unparkSuccessor唤醒后继结点
+
+unparkSuccessor分为两类,若是非公平锁,则唤醒的是等待队列中从前往后的第一个状态不为cancelled的节点
+若是公平锁,那么就唤醒离他最近的第一个状态不为cancelled的节点.这里要注意,若是发现后继结点为null,要从后往前再检验一遍是否真的为null
+```
+
+
+
+## CAS和锁

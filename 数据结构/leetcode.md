@@ -3009,6 +3009,7 @@ class Solution {
         if(right == null) return left;
         return root;
     }
+}
 
  ```
 
