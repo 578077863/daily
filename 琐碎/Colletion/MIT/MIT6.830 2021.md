@@ -1,3 +1,127 @@
+
+## 总结
+
+```
+**MIT 6.830 数据库系统**
+
+1. 项目简介：基于MIT 830课程完成的数据库系统  
+2. 基本结构：数据存储与操作相关的类，其中使用位图来记录数据页中槽位的使用情况，达到节省空间从而使得同等大小的数据页能容纳更多记录；基于LRU淘汰策略实现的缓冲池管理对数据的操作  
+3. 基本操作：实现了条件查询，连接查询(内连接)，单字段聚合，单字段分组    
+4. 事务与并发：实现页级锁，基于2PL实现可重复读隔离级别。采用超时检测策略解除死锁。在日志基础上支持事务回滚    
+5. 索引：采用B+树索引，实现查询，插入，删除功能    
+6. 日志：基于steal/no-force策略实现的日志系统
+```
+
+```markdown
+
+```
+
+
+# HeapFile
+HeapFile具有多少数据页：当前File大小 / 一张数据页的大小，向上取整
+
+对File的遍历写了一个迭代器
+```java
+private HeapFile heapFile;  
+private TransactionId transactionId;  
+private Iterator<Tuple> iterator;  
+private int curPage;
+
+private class HeapFileIterator implements DbFileIterator{
+	private HeapFile heapFile;  
+	private TransactionId transactionId;  
+	private Iterator<Tuple> iterator;  
+	private int curPage;
+}
+
+
+//该迭代器核心就是该方法,传入要读取的页下标,iterator就切换成该页的iterator了
+private Iterator<Tuple> getIterator(int pageNo) throws TransactionAbortedException, DbException {  
+    if(pageNo >= 0 && pageNo < heapFile.numPages()){  
+        HeapPageId heapPageId = new HeapPageId(heapFile.getId(), pageNo);  
+        HeapPage page = (HeapPage) Database.getBufferPool().getPage(transactionId, heapPageId, Permissions.READ_ONLY);  
+        return page.iterator();  
+    }else{  
+        throw new DbException(String.format("problems opening/accessing the database pageNo %d ", pageNo));  
+    }  
+}
+
+//通过hashNext判断是否next是否有剩余
+@Override  
+public boolean hasNext() throws DbException, TransactionAbortedException {  
+    if(iterator == null){  
+        return false;  
+    }else if(iterator.hasNext()){  
+        return true;  
+    }else{  
+        curPage++;  
+        if(curPage >= heapFile.numPages()){  
+            return false;  
+        }else{  
+            iterator = getIterator(curPage);  
+            return hasNext();  
+        }  
+    }
+```
+
+
+```markdown
+readPage(PageId id): 根据pid拿到tid和pageNo,通过RandomAccessFile打开File, 判断要获取的页是否在文件的范围内(通过字节长度判断),判断通过后,调用randomaccessFile.seek(xx)方法,xx为 pageSize * pageNo
+
+int read = randomAccessFile.read(bytes, 0, BufferPool.getPageSize());
+HeapPageId id = new HeapPageId(tableId, pageNo);  
+return new HeapPage(id, bytes);
+
+最后调用randomAccessfile.close()
+
+
+insertTuple(tid, t):
+```
+
+## HeapPage类
+关键属性：
+```java
+final HeapPageId pid;  
+final TupleDesc td;  
+final byte[] header;  
+final Tuple[] tuples;  
+final int numSlots;
+private boolean dirty;  
+private TransactionId ditryTId;
+```
+
+记录着当前page属于哪张表，元组的信息由TupleDesc记录
+字节数组header记录着当前数据页上槽位的使用情况
+Tuple数组存放记录
+
+numSlots代表着数据页最多能存放多少记录，一条记录需要的空间是：按位来计算：当前数据页大小 * 8 / (元组全部字段类型的大小之和 + 1位标头需要的空间)，**结果向下去，因为数据页的大小是固定的，槽位可以少，但不能超出**
+
+
+header的大小基于 numSlots， 1位代表一个槽，所以 numSlot/ 8，向上取整就是header的大小了
+
+
+dirty，dirtyId这两个都是由最后操作的事务在操作中写上的
+
+
+**遍历**：创建一个List，对Tuple数组进行遍历，若该槽位已经被使用，就将其添加进List集合中，遍历完就返回list的迭代器。
+
+**插入：** 先对插入的元组判断其字段信息是否和当前数据页的字段信息相匹配，再判断当前数据页的空槽位是否为0，不为0就寻找到一个空槽位，让该槽位指向 等于插入的元组。然后设置该槽位已被使用，为插入的元组设置 RecordId，停止遍历
+
+
+### HeapPageId类
+记录着 tableId，pageNo
+
+### Tuple类
+就是元组，由[[MIT6.830 2021#Filed类]]对象的集合组成
+元组的类型由 [[MIT6.830 2021#TupleDesc类]]表示
+其归属记录在[[MIT6.830 2021#RecordId类]]
+#### RecordId类
+记录着 当前元组属于哪一数据页（pageId），在数据页中的位置（tupleNo）
+
+#### Filed类
+
+#### TupleDesc类
+该实例由元组类型对象的集合组成，元组中每个字段对应着一个实例，每个实例描述着字段的类型与名称
 ## Lab2
 ### 2.1. 过滤和联接
 SimpleDB OpIterator 类实现了关系代数的运算。现在，您将实现两个运算符，这两个运算符将使您能够执行比表扫描稍微有趣的查询。

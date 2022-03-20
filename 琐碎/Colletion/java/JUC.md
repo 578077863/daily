@@ -673,7 +673,7 @@ main() 属于非守护线程。
 
 在线程启动之前使用 setDaemon() 方法可以将一个线程设置为守护线程。
 
-
+在 Java 中垃圾回收线程就是特殊的守护线程。
 #### sleep
 Thread.sleep(millisec) 方法会休眠当前正在执行的线程，millisec 单位为毫秒。
 
@@ -684,6 +684,8 @@ sleep() 可能会抛出 InterruptedException，因为异常不能跨线程传播
 
 
 ### 4.5 synchronized及锁升级
+>[(58条消息) synchronized加锁流程 从偏向锁到重量级锁_大老李superLi的博客-CSDN博客](https://blog.csdn.net/weixin_43955776/article/details/107078477)
+
 
 ```markdown
 header中hashcode是类似懒加载的模式，对象被创建时在header中的值是0，第一次被调用的时候才会计算出值，后续每次调用都是这个值，当然这是在没重写hashcode方法的前提下。
@@ -1161,3 +1163,29 @@ unparkSuccessor分为两类,若是非公平锁,则唤醒的是等待队列中从
 
 
 ## CAS和锁
+
+
+
+## ThreadLocal
+>[(59条消息) ThreadLocal-hash冲突与内存泄漏_为自己勇敢的博客-CSDN博客_threadlocal 哈希冲突](https://blog.csdn.net/Summer_And_Opencv/article/details/104632272)
+>[ThreadLocal与引用类型相关知识点整理 - 东北小狐狸 - 博客园 (cnblogs.com)](https://www.cnblogs.com/hellxz/p/java-threadlocal.html)
+>[(59条消息) Java8-ThreadLocal的Lambda构造方式：withInitial_Zebe的博客-CSDN博客_threadlocal.withinitial](https://blog.csdn.net/zebe1989/article/details/82692551)
+>[【JUC剖析】ThreadLocal类 详解 - 在下右转，有何贵干 - 博客园 (cnblogs.com)](https://www.cnblogs.com/codderYouzg/p/14094442.html)
+
+
+作用：
+提供线程内的 **局部变量**，**不同的线程** 之间 **不会相互干扰**  
+这种变量在 **线程的生命周期内** 起作用，  
+减少 **同一个线程** 内 **多个函数或组件** 之间一些 **公共变量** 的 **传递复杂度**
+
+
+1.  **`线程并发`**:  
+    在 **多线程并发** 的场景下
+2.  **`传递数据`**:  
+    我们可以通过ThreadLocal在 **同一线程**，**不同组件** 中传递 **公共变量**
+3.  **`线程隔离`**:  
+    每个线程的变量都是 **独立** 的，**不会相互影响**
+
+1.  传递数据 ： 保存每个线程绑定的数据，在需要的地方可以直接获取, 避免参数直接传递带来的代码耦合问题
+    
+2.  线程隔离 ： 各线程之间的数据相互隔离却又具备并发性，避免同步方式带来的性能损失

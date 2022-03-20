@@ -137,6 +137,11 @@ JVM 栈描述的是每个线程 Java 方法执行的内存模型：每个方法
 栈帧的定义，栈帧结构（局部变量表），操作数栈，动态链接，返回地址
 [(53条消息) JVM栈帧内部结构-局部变量表_chenxi_blog的博客-CSDN博客_局部变量表结构](https://blog.csdn.net/qq_20394285/article/details/104673874)
 ```
+
+
+## 运行时常量池
+该区域是方法区的一部分。Class文件中有除了类的版本、字段、方法、接口外，还有一个常量池表，这个常量池表在类加载后会存放到运行时常量池中。运行时常量池具有动态性，Class中的常量池没有动态性。因为Java可以在运行时产生常量，该常量也会进入到常量池中，如String.intern()方法
+
 # 类与对象
  类就是模板，是图纸，实例是具体的实现，是解决问题具体的单位。类在C语言中就是一个结构体，包含若干类型看作成员，并且提供操作这些成员方法。而成员具体的值根据实例的不同而不同。
 
@@ -1158,6 +1163,13 @@ HotSpot会在所有方法的临返回之前，以及所有非counted loop的循�
 
 **而_抢先式中断_**不需要线程的执行代码 主动去配合，在垃圾收集发生时，系统首先把所有用户线程全部中断，如果发现有用户线程中断的地方不在安全点上，就恢复这条线程执行，让它一会再重新中断，直到跑到安全点上。**现在几乎没有虚拟机实现采用抢先式中断来暂停线程响应GC事件**。
 
+
+
+
+
+# JVM优化
+[jvm 优化篇-（5）-线程局部缓存TLAB 指针碰撞、Eden区分配 -XX:+UseTLAB -XX:+PrintTLAB -XX:TLABWasteTargetPercent - 简书 (jianshu.com)](https://www.jianshu.com/p/a7414c0ebb17)
+[(58条消息) Java基础知识点总结系列（九）—— 指针碰撞与TALB_别急，还差一行代码的博客-CSDN博客_java指针碰撞](https://blog.csdn.net/qq_41613281/article/details/110001144?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~aggregatepage~first_rank_ecpm_v1~rank_v31_ecpm-5-110001144.pc_agg_new_rank&utm_term=TLAB%E5%92%8C%E6%8C%87%E9%92%88%E7%A2%B0%E6%92%9E+jvm&spm=1000.2123.3001.4430)
 
 
 
