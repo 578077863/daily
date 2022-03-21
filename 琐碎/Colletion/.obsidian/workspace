@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "MySQL/练习.md",
+            "file": "redis/redis.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "tcp",
+                "query": "自旋锁",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "MySQL/练习.md"
+                "file": "redis/redis.md"
               }
             }
           },
@@ -91,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "MySQL/练习.md",
+                "file": "redis/redis.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "MySQL/练习.md",
+                "file": "redis/redis.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -122,15 +122,15 @@
   },
   "active": "84cd6b7fa51c0517",
   "lastOpenFiles": [
+    "redis/redis.md",
+    "背诵/笔记.md",
+    "redis/练习.md",
     "MySQL/练习.md",
     "MySQL/MySQL.md",
     "计算机网络/计算机网络.md",
     "HTTP/HTTP.md",
-    "redis/练习.md",
-    "redis/redis.md",
-    "java/练习.md",
-    "背诵/笔记.md",
-    "java/Java基础.md",
-    "java/JVM.md"
+    "java/JVM.md",
+    "面试杂烩/面经.md",
+    "面试杂烩/面试.md"
   ]
 }
