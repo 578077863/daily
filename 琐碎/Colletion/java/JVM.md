@@ -116,6 +116,8 @@ JVM 栈描述的是每个线程 Java 方法执行的内存模型：每个方法
 是一个只能在表尾进行插入和删除操作的线性表，其生命周期和线程同步，线程结束，栈内存就释放，不存在垃圾回收的问题
 **JVM 栈描述的是每个线程 Java 方法执行的内存模型**：每个方法被执行的时候，JVM 会同步创建一个栈帧用于存储局部变量表、操作数栈、动态链接、方法出口等信息
 
+方法一旦执行完毕，栈帧出栈，里面的局部变量直接就从内存里清理掉了。
+
 **栈与堆的区别**
 
 栈是运行时单位，而堆是存储的单位，即栈解决的是运行问题，即程序如何执行，或者如何处理数据，功能类似于计算机硬件 PC寄存器。堆解决的是数据存储的问题，即数据怎么放、放哪儿。
@@ -151,8 +153,7 @@ JVM 栈描述的是每个线程 Java 方法执行的内存模型：每个方法
 >  java.exe要做的事情：
 >【1】根据JVM配置，在内存为JVM的运行申请内存空间
 >【2】创建引导类加载器（bootstrap），初步加载子系统到JVM方法区（lib包下的jar）
->【3】创建JVM启动器实例（JVM实例：Laucher）,扩展类加载器（extension）和系统类（application）加载器都是launcher实例的内部类，laucher.getClassLoader()获得类加
->器实例
+>【3】创建JVM启动器实例（JVM实例：Laucher）,扩展类加载器（extension）和系统类（application）加载器都是launcher实例的内部类，laucher.getClassLoader()获得类加器实例
 >【4】使用类加载器实例加载public类（主类），调用主类的main()方法
 >【5】java程序开始运行…运行结束则JVM销毁
 
@@ -174,6 +175,174 @@ JVM 栈描述的是每个线程 Java 方法执行的内存模型：每个方法
 对应每一个载入jvm内存的class文件，方法区保存两个对象的引用，一个是对class文件信息进行映射的class对象，另一个是加载该class文件的classLoader对象（对应自定义类，一般都指向applicationClassLoader）。
 >加载的结果：class文件载入内存，堆内存创建了一个class对象，方法区为该class文件保存了一个class对象引用和一个classLoader引用。通过这两个引用可以判断两个类是否是
 >一个类型
+
+JVM加载类的信息到内存之后，使用字节码执行引擎去执行我们写的代码编译出来的代码指令，在执行代码的时候需要程序计数器来记录当前执行的字节码指令的位置的，也就是记录目前执行到了哪一条字节码指令。
+
+
+```java
+public class Load {
+
+    public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        MyClassLoader myClassLoader = new MyClassLoader();
+        Class<?> myMap1 = myClassLoader.loadClass("MyMap");
+        Class<?> myMap2 = myClassLoader.loadClass("MyMap");
+
+        MyClassLoader myClassLoader1 = new MyClassLoader();
+        Class<?> myMap3 = myClassLoader1.loadClass("MyMap");
+
+        //myMap1 == myMap2  != myMap3
+//        Object instance = myMap.newInstance();
+    }
+}
+
+class MyClassLoader extends ClassLoader{
+
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        String path = "e:\\myclassPath\\" + name + ".class";
+
+        try{
+
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            Files.copy(Paths.get(path),os);
+
+            //得到字节数组
+            byte[] bytes = os.toByteArray();
+
+            //byte[] -> *.class
+            return defineClass(name,bytes,0,bytes.length);
+
+        }catch (IOException e){
+            e.printStackTrace();
+            throw new ClassNotFoundException("类文件未加载到");
+        }
+    }
+}
+
+
+```
+
+
+##### 双亲委派模型
+
+1. 以保证绝对不会重复加载某个类
+2. 基础类的统一
+
+###### 为什么不选择从上往下加载
+因为这样的话就写死了，每一个父加载器都要知道它的子加载器是谁，写死，不方便扩展
+而双亲委派父类不必知道子类，找不到就抛异常，由子类catch后自己尝试加载
+
+
+感觉这个无关 //还有就是一定程度上避免类的重复加载，父加载器可以加载，子加载器也可以加载，如果子类发现父类加载了，就不加载。
+
+###### 理解JDBC
+
+jdbc本质上是java官方定义的一组接口（Drive/Connect/Statement/ResultSet等），然后让各个数据库厂商去向用户提供各自的接口实现类，这些接口规定了一种行为——java语言如何操作数据库实例。用户可以基于这套接口去面向接口编程，作为用户的程序员只需要注册相应的驱动即可。  
+而一个JDBC打开的连接，最终也会映射为一条数据库连接（mysql客户端与mysql服务器之间建立的TCP连接）
+
+###### statement
+
+Statement接口规范了执行sql语句，返回结果的行为。  
+statement直接对参数的处理，是直接将sql语句与参数进行字符串拼接的，容易被sql注入攻击（例如 and 1 = 1恒成立，进行全表扫描）。preparedStatement是statement的子接口，可以防止SQL注入攻击，会对SQL进行预编译，效率很高，而且参数使用?进行占位，通过set方法给占位符赋值（这里谈论的都是具体的实现类行为）  
+callableStatement继承自preparedStatement，用于调用存储过程，不过一般不使用JDBC创建存储过程。
+
+###### JDBC流程
+
+JDBC的流程可以概括为：  
+【1】注册数据库驱动  
+【2】拿到连接connect对象  
+【3】拿到执行sql语句的statement对象  
+【4】执行sql语句得到结果集resultSet对象
+
+```java
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection root = DriverManager.getConnection("jdbc:mysql://localhost:3306/mysql?useSSL=false", "root", "123456");
+        String sql ="select * from user";
+        Statement statement = root.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        statement.close();
+        root.close();
+
+    
+```
+
+获取connect对象的方式有两种，一种是直接new对应的Driver对象，然后使用driver对象的connect方法去获得，而另一种更加常用的方式是使用DriverManager的静态方法getConnection去获取
+
+###### 注册驱动原理
+
+注册注册，听着很玄乎，其实说白了就是driverManager这个类维护了一个集合，这个集合装载的是Driver对象（DriverInfo是对Driver的封装，内部组合了DrIver对象，内部还维护了一个DriverAction类型，可以指定取消注册的逻辑）。而注册说白了就是往这个容器中添加Driver的过程
+
+```java
+    private final static CopyOnWriteArrayList<DriverInfo> registeredDrivers = new CopyOnWriteArrayList<>();
+```
+
+当我们forName主动将一个类加载如内存，就会触发类初始化，执行该类的static块。这个块内执行的逻辑其实就是new一个对象，然后注册进driverManager的Driver集合中。
+
+```java
+    static {
+        try {
+            DriverManager.registerDriver(new Driver());
+        } catch (SQLException var1) {
+            throw new RuntimeException("Can't register driver!");
+        }
+    }
+```
+
+Driver类还会有一个无参构造器，我们也可以直接使用这个无参构造器new一个driver对象，但是这样就属于硬编码了，而第一种方式完全可以写在配置文件中，然后读入properties对象。
+
+```java
+    public Driver() throws SQLException {
+    }
+```
+
+driverManager设计的目的就是代替用户管理驱动（Driver），也算是一种控制反转吧…  
+一旦将Driver委托给driverManager后，获得连接时，需要遍历集合找到合适的驱动对象（依次尝试connect，如果返回的连接对象不为null就返回），并且调用其对应的connect方法。
+
+###### 打破双亲
+DriverManager它是rt,jar包中定义的类，因此它的类加载器是bootstrap，而Driver是各个厂商提供的类，属于application加载的范畴，因此不能使用driverManager的类加载器直接去加载Driver。
+
+> 双亲委派模型并不是一个强制性的约束模型，而是java设计者推荐给开发者使用的一种类加载器实现模型，它虽然解决了**类的唯一性问题（防止内存中存在多个同名类型）**：使用不同类加载器加载的类最终都会被同一个类加载器加载——也就是说，用户要使用DriverManager，那么使用时DriverManager会被bootstrap加载，但是现在DriverManager相应根据用户传入的String去加载这个Driver，就加载不了了，因为DriverManager只能使用bootstrap加载，它没有更高一级的领导，更不可能往下委托，这就是双亲模型的缺陷——**上层类无法回调下层类的代码**（下层类需要使用上层类代码时，可以直接new或者反射调用，反正肯定能将上层类加载入内存，但是上层类没法这么做，因为它没法加载一个下层类）
+
+什么是打破双亲？本来按照双亲委派的规则，上层类（启动）无法加载下层类（应用），但是我通过某种方式达到这个目的——主动违背委派模型。
+
+```java
+        synchronized(DriverManager.class) {
+            if (callerCL == null) {
+                callerCL = Thread.currentThread().getContextClassLoader();
+            }
+        }
+```
+
+解决方案：使用调用类的类加载器去加载Driver类，如果调用类的类加载器为null，就设置为线程的上下文类加载器。
+
+```java
+		aClass =  Class.forName(driver.getClass().getName(), true, classLoader);
+```
+
+driverManager使用的是调用类的类加载器或者线程上下文类加载器去加载的Driver。
+
+
+
+###### 线程上下文类加载器与SPI
+SPI：服务提供接口——为某个接口寻找服务的实现，类似于依赖注入思想
+
+> Java SPI的具体约定为：当服务的提供者提供了**服务接口的一种实现**之后，在jar包的META-INF/services/目录里同时创建一个**以服务接口命名的文件**，该文件里就是实现该服务接口的**具体实现类全限定名列表**。而当外部程序装配这个模块的时候，就能通过该jar包META-INF/services/里的配置文件找到具体的实现类名，并装载实例化，完成模块的注入
+
+java提供了很多SPI接口，如java.sql.Driver，而运行第三方为这些接口提供实现类，但是这就出现了一个问题：SPI接口是java类库的一部分，由bootstrap启动类加载器进行加载，而SPI的实现类是由application系统类加载器来加载的，因此**在双亲委派模型下，启动类加载器无法委派系统类加载器去加载类**。  
+（使用SPI前，需要在类路径中加入JDBC的第三方jar包，相当于指明了JDBC接口的实现类，最终实现类会被application类加载器加载）
+
+线程上下文类加载器是java对双亲委派模式与实现SPI之间的妥协，Java 应用运行的**初始线程**的上下文类加载器是**系统类加载器**，在线程中运行的代码可以通过此类加载器来加载类和资源。  
+SPI接口中直接使用线程上下文加载器，而不使用自身的类加载器，就可以成功实现“向下委托”的效果。
+
+> jdk6之后，oracle改写了加载JDBC驱动的方式，不必显示使用Class.forName()方法加载JDBC驱动，driverManager会在类加载阶段从（jar包的META-INF/services/）配置文件中加载Driver的所有实现类（驱动jar需要包含在类路径中）
+
+总结：  
+JDK提供SPI接口，第三方提供实现类，而且第三方按照约定将以服务接口名命名的文件放入jar包的META-INF/services/目录下，内容就是实现类全限定类名列表。按照约定jdk会去扫描jar包中符合约定的类名，然后依次调用forName加载，由于SPI接口自身的类加载器无法加载第三方类型，因此就将这个任务委托给当前执行线程的线程上下文加载器，加载完毕用户就可以正常使用了——_用着java官方提供的SPI接口，功能却是第三方实现的_。  
+SPI的出现，让程序员可以真正实现面向接口编程，运行时自动注入实现类（不需要再forName指定实现类）
+
+> 严格上说，正在起作用的是实现类，而实现类确实需要被application加载，只不过是看起来“application类加载器加载了Connect接口”，一般更严格意义上的“打破”是实现自定义类加载器并且重写loadClass方法
+
+
 
 
 #### 连接
@@ -617,6 +786,10 @@ CMS就是标记清除算法的。
 
 老年代一般是将标记清除和标记整理混合使用的，例如，CMS虽然是基于标记清除算法，但是如果内存碎片过多导致无法分配对象，则会**使用基于标记整理的serial old垃圾回收器进行一次基于标记整理的GC。**
 
+
+## 方法去里的类回收条件
+首先该类的所有实例对象都已经从Java堆内存里被回收 其次加载这个类的ClassLoader已经被回收 最后，对该类的Class对象没有任何引用 满足上面三个条件就可以回收该类了。
+
 ## 跨代引用问题
 我们将堆内存按照generation划分，但是每一个generation都不是独立的，新生代的对象可能引用老年代对象，反过来一样。我们不关心新生代对老年代的跨代引用，因为majorGC总是伴随着minorGC，但是我们在乎**老年代对象指向新生代对象的引用**。  
 如果每次扫描一个新生代对象，还需要专门扫描一遍老年代，那么效率就太低了。  
@@ -990,8 +1163,16 @@ eden和survivor的比例： -XX：survivor ratio 如果是8代表eden占8份，�
 G1 region大小： -XX：G1 heap region size  
 G1 预期停顿时间 ：-XX:Max GC Pause Millis
 
+-Xmn：Java堆内存中的新生代大小，扣除新生代剩下的就是老年代的内存大小了 
 
+-XX:PermSize：永久代大小    -XX:MaxPermSize：永久代最大大小 
+如果是JDK 1.8以后的版本，那么这俩参数被替换为了-XX:MetaspaceSize和-XX:MaxMetaspaceSize
 
+-Xss：每个线程的栈内存大小
+
+么如果是在线上部署系统应该如何设置JVM参数呢？ 其实都很简单，比如说采用“java -jar”的方式启动一个jar包里的系统，那么就可以采用类似下面的格式： java -Xms512M -Xmx512M -Xmn256M -Xss1M -XX:PermSize=128M -XX:MaxPermSize=128M -jar App.jar 
+
+如果是现在非常流行的那种启动Spring Boot开发的系统呢？
 
 # 体系回答
 ```markdown

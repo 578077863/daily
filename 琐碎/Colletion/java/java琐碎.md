@@ -277,7 +277,7 @@ CGLIB是通过继承的方式来实现动态代理的，有继承就不得不考
 
 
 ### 尾声
-动态代理是[Spring AOP](https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#aop)(Aspect Orient Programming, 面向切面编程_)的实现方式，了解动态代理原理，对理解Spring AOP大有帮助。
+动态代理是Spring AOP(Aspect Orient Programming, 面向切面编程_)的实现方式，了解动态代理原理，对理解Spring AOP大有帮助。
 
 -   如spring等这样的框架，要增强具体业务的逻辑方法，不可能在框架里面去写一个静态代理类，太蠢了，只能按照用户的注解或者xml配置来动态生成代理类。
 -   业务代码内，当需要增强的业务逻辑非常通用（如:添加log，重试，统一权限判断等）时，使用动态代理将会非常简单，如果每个方法增强逻辑不同，那么静态代理更加适合。

@@ -654,6 +654,18 @@ shutdown状态下的线程池不会接收新的任务（对新任务执行拒绝
 
 > 调用shutdown方法后，如果所有线程都被阻塞，会唤醒所有阻塞的线程，线程判断线程池状态为shutdown便主动销毁。否则如果存在正在执行的任务，则等待任务执行完毕后的线程销毁时向阻塞线程发送中断信号。
 
+#### 线程池思考
+##### 线程池队列满了
+自定义reject策略，如果线程无法执行更多的任务，可以把这个任务信息持久化写入到硬盘中去，后台会专门启动一个线程，等后续线程池的工作负载降低了，就慢慢地从磁盘读取之前持久化的任务，重新提交到线程池里去执行
+
+##### 如果线上机器突然宕机，线程池的阻塞队列中的请求怎么办？
+必然会导致线程池中积压的任务都会丢失。
+
+如何解决这个问题呢？
+
+我们可以在提交任务之前，在数据库中插入这个任务的信息，更新任务的状态：未提交、已提交、已完成。提交成功后，更新它的状态是已提交状态。
+
+系统重启后，用一个后台线程去扫描数据库里的未提交和已提交状态的任务，可以把任务的信息读取出来，重新提交到线程池里去，继续进行执行。
 
 ### 4.3 基础线程机制
 #### Executor
@@ -683,20 +695,104 @@ sleep() 可能会抛出 InterruptedException，因为异常不能跨线程传播
 对静态方法 Thread.yield() 的调用声明了当前线程已经完成了生命周期中最重要的部分，可以切换给其它线程来执行。该方法只是对线程调度器的一个建议，而且也只是建议具有相同优先级的其它线程可以运行。
 
 
+
+###  4.4 java线程通信机制
+基于共享内存机制
+>[(60条消息) 【多线程】Java线程间是如何通信的呢？慕沐.的博客-CSDN博客_线程间是如何通信的](https://blog.csdn.net/cxh6863/article/details/106779083)
+
+同步：synchronized
+关键字synchronized可以修饰方法或者以同步块，它主要确保多个线程在同一个时刻，只能有一个线程处于方法或者同步块中，它保证了线程对变量访问的可见性和排他性。
+
+
+信号量：volatile
+Java支持多个线程同时访问一个对象或者对象的成员变量，由于每个线程可以拥有这个变量的拷贝，所以程序在执行过程中，一个线程看到的变量并不一定是最新的。
+关键字volatile可以用来修饰字段（成员变量），就是告知程序任何对该变量的访问均需要从共享内存中获取，而对它的改变必须同步刷新回共享内存，它能保证所有线程对变量访问的可见性。
+
+关于synchronized与volatile ，synchronized主要做的是多线程顺序执行，也就是同一个时间只有一个线程在执行，线程A执行完了再让线程B执行，volatile主要做的是让多线程间共享的变量保证一致，也就是线程A对变量操作了，线程B对变量操作时是知道线程A对变量的操作的，是在线程A操作后的变量上进行操作。
+
+等待通知机制：wait、notify
+等待/通知机制使⽤的是使⽤同⼀个对象锁，如果你两个线程使  
+⽤的是不同的对象锁，那它们之间是不能⽤等待/通知机制通信的
+
 ### 4.5 synchronized及锁升级
 >[(58条消息) synchronized加锁流程 从偏向锁到重量级锁_大老李superLi的博客-CSDN博客](https://blog.csdn.net/weixin_43955776/article/details/107078477)
 
+synchronized是java实现线程同步的一个关键字，同步就是步调一致，synchronized修饰代码块或者函数，那么这个区域就可以看作一个同步块，不存在某一时刻多个线程同时执行同步块的代码。
+
+谈到多线程，那就离不开**共享变量**，如果synchronized包裹的同步块中操作的净是些局部变量，那synchronized同步了个寂寞。什么时候需要同步，那肯定是多个线程并发访问同一个共享变量时才需要同步，A线程在同步块修改完这个共享变量时，B再进入这个同步块，它能立即发现共享变量的最新值，而且它修改共享变量时，不存在其他线程来捣乱的情况。
+
+
+**synchronized包的是什么**
+学过操作系统都知道，进程/线程同步有很多方式，例如信号量、互斥量，其中还有一种方式就是管程。**管程**就像一个黑盒子，系统提供给我们使用，他能保证同一时刻只有一个进程/线程可以执行管程包裹的代码，管程为我们隐藏了实现的数据结构等细节，我们只需要关注暴露出的接口。  
+java程序运行在JVM之上，而JVM本质上就是对计算机的虚拟，那么java系统是否为我们也提供了管程？synchronized就是java实现的管程。
+
+**JVM层面**
+synchronized为用户屏蔽了实现细节，其中**进入synchronized**在JVM底层对应**monitorEnter指令**，而**出synchronized**对应**monitorExit指令**。monitor翻译过来就是管程的意思。调用synchronized方法时，编译源码后，字节码文件的方法表标识字段会出现ACC_synchronized，底层仍然会调用上面的两个指令。  
+同时，编译器会在以上指令附近插入**内存屏障**，告诉操作系统和CPU硬件，在执行该指令时禁止某些优化，来保证相应的可见性和有序性特性。
+
+直接看以上两个指令，就感觉底层肯定有一个叫monitor的数据结构管理着同步状态。
 
 ```markdown
 header中hashcode是类似懒加载的模式，对象被创建时在header中的值是0，第一次被调用的时候才会计算出值，后续每次调用都是这个值，当然这是在没重写hashcode方法的前提下。
 另外对象刚被创建的时候，header中不一定会存hashcode，比如使用jvm命令禁用偏向锁，又或者在偏向锁期间发生锁批量撤销，都会导致创建的对象直接分配轻量级锁，而轻量级锁的header只存了lock record地址和锁标志位，hashcode只是间接存储。
 ```
 
-jdk1.6的优化是：
+
+
+#### Monitor
+>[[JVM#Monitor]]
+
+synchronized包裹的内容可以是字符串、class对象、this（synchronized实例方法包裹的是this，而synchronized类方法包裹的是class对象）等。不管它包裹的什么，那一定是一个对象。
+
+类锁一般说的是synchronized（xxx.class）或static synchronized，那么不管通过哪个实例去操作资源类，都会被同步。因为不管class对象还是类方法都是属于类的，每个JVM实例只存在一个的，大家抢的都是这一个，和从哪里访问没有关系。
+
+其实，如果直到了“锁”的原理，就没必要如此分析。
+
+首先记住：**synchronized关联的是monitor结构，而monitor和Object对象绑定**，因此，不严谨的说，所有object对象都能作为“锁”
+
+每个java对象在内存布局中由三部分组成：**对象头**、**实例数据**和**填充数据/对齐填充**。其中对象头又可以分为两部分：**标记字段 mark word** 和 **类型指针**  
+mark word的结构不是固定的，是动态变化的，根据结果不同可以分为无锁状态、偏向锁状态、轻量级锁状态、重量级锁状态。  
+如果一个对象处于重量级锁状态，那么mark word将具有一个指向重量级锁的指针。
+
+> 重量级锁的创建是延迟的，而且锁升级的出现，主要原因也是为了避免重量级锁的创建。
+
+总结：假设不存在锁升级，一旦线程初次进入synchronized块，将伴随锁（monitor）的创建，并且线程将试图获取这个锁（实现上一般是CAS将owner字段修改为某个线程id）。（重量级锁的叫法大致在，是引入锁升级之后，这里不做区分）  
+注意：锁本质上只是一个变量，上锁、抢锁实际含义是CAS争抢“置位操作”，用户能直接看见的是synchronize包裹着对象，其实底层线程争抢对object关联的monitor进行置位操作
+
+
+#### 从源码看synchronized
+
+有兴趣的，可以看一看JVM对应的C++源码，这里我只进行一些个人总结。  
+synchronized是java对管程的一种实现，使用了某种管程模型，这里指出是为了防止固化思维。  
+monitor在底层，对应C++定义的objectMonitor。  
+每个线程都会被抽象为一个对象（类似java的thread，C++也类似，下面指的线程就是一个被抽象出的对象而不是操作系统层面的线程），每个java对象关联的monitor也是一个对象，不过是C++对象。  
+【1】count 记录重入次数（可重入锁的最大特点就是可以**防止多次调用而导致死锁**，非可重入锁通常是使用布尔值01进行标记锁的状态，而可重入锁使用一个计数器变量）  
+【2】owner指向拥有该对象的线程  
+【3】waitSet 等待队列（wait()调用后，线程被移入该队列，其实就是插入链表队尾，对应java线程的wait状态）  
+【4】entryList 同步队列（进入synchronized后并且没有获取到锁，则会进入该队列，对应java线程的block状态）
+
+一个线程进入synchronized后便进行**一次CAS**（CAS（owner,null,cur)试图让自己称为owner），没错，这里强调的就是一次。如果第一次CAS失败则说明抢占失败，通常会进行**自适应自旋（重试）**，如果仍然失败则进入entryList同步队列，并且调用park()阻塞当前线程，底层对应系统调用**将当前线程对象映射到的操作系统线程挂起，并让出CPU**，这一步通常代价比较大，因为涉及系统调用和线程切换。如果成功将owner修改为自己，则开始执行同步代码，并且将count加一。执行完毕将count减一，复位owner，并且唤起entryList阻塞的线程（实现上通常唤醒队头线程，不过如果没抢到还会进入entryList队尾，通常流动性很大，不会出现饥饿）。  
+而如果owner线程调用wait，则进入waitSet并阻塞（同样对应park调用），同时让出CPU。只有其他线程调用notify它才会被唤醒，而且唤醒后进入entryList，当owner被复位后，同entryList其他线程进行竞争，当称为owner将从原执行位置继续向下执行。
+
+注意：synchronized阻塞指的通常是synchronized抢占锁失败的行为，即不管互斥锁还是自旋锁指的都是**失败后的处理策略**。
+
+#### 从操作系统看synchronized
+
+**monitor的阻塞部分**底层依赖**操作系统的互斥量（mutex）实现，而**上锁部分**则依赖CPU的**CAS指令**。（LockSupport/unsafe提供的park()和atomic/unsafe提供的CAS底层其实也是这一套东西，只不过拿到明面上来了）
+
+而synchronized的可见性和有序性都是CAS保证的（lock cmpxchg），[volatile的文章说的比较清楚，这里不展开了](https://blog.csdn.net/qq_44793993/article/details/117636156)。而原子性是由锁保证的（操作同步代码之前，需要先过monitor这一关，你不是owner就别想过去）
+
+
+#### synchronized的优化
+jdk1.6之后的优化是：
 1. 锁升级机制
-2. 锁消除。一些框架采用保守策略，将程序基于[线程安全](https://so.csdn.net/so/search?q=%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8&spm=1001.2101.3001.7020)实现，锁消除是一种编译器优化，通过逃逸分析消除部分无必要的同步代码。
+2. 锁消除。一些框架采用保守策略，将程序基于线程安全实现，锁消除是一种编译器优化，通过逃逸分析消除部分无必要的同步代码。
 3. 锁粗化。在编译期间将相邻的同步代码块合并成一个大的同步代码块，减少反复申请、释放造成的开销。（即使每次都可以获得锁，那么频繁的操作底层同步队列也将造成不必要的消耗）
 4. 自适应自旋锁。synchronizedCAS占用owner失败后，会进行自旋尝试，这个时间不是固定的，而是**前一次在同一个锁上的自旋时间以及锁的拥有者的状态来决定的**
+>自旋锁的开启：  
+> JDK1.6中-XX:+UseSpinning开启；  
+> -XX:PreBlockSpin=10 为自旋次数；  
+> JDK1.7后，去掉此参数，由jvm控制；
 
 同时，用户也可以具有一些优化意识，如：
 锁分离。最常见的就是读写分离。
@@ -711,7 +807,7 @@ jdk1.6的优化是：
 
 Synchronized经过编译，会在同步块的前后分别形成monitorenter和monitorexit这个两个字节码指令。在执行monitorenter指令时，首先要尝试获取对象锁。如果这个对象没被锁定，或者当前线程已经拥有了那个对象锁，把锁的计算器加1，相应的，在执行monitorexit指令时会将锁计算器就减1，当计算器为0时，锁就被释放了。如果获取对象锁失败，那当前线程就要阻塞，直到对象锁被另一个线程释放为止。
 
-#### 特点:
+#### 特点
 
 1.  原子性
     
@@ -733,8 +829,7 @@ Synchronized经过编译，会在同步块的前后分别形成monitorenter和mo
 
 其中displaced mark word用于保存对象mark word未锁定状态下的结构（用于替换——**因为mark word的结构依据锁的状态不同动态变化着，因此必须有一个结构用于保存mark word的原始状态**，这个结构就是保存在线程栈帧中的displaced mark word）。
 
-#### Monitor
-[[JVM#Monitor]]
+
 #### 偏向锁
 
 偏向锁——一段同步代码总是被一个线程所访问（不存在另外一个线程），那么该线程会自动获取锁，降低获取锁的代价。（单线程环境下都是偏向锁） 偏向锁在一个线程第一次访问的时候将该线程的id记录下来，下次判断如果还是该线程就不会加锁了。如果有另一个线程也来访问它，说明有可能出现线程并发。此时偏向锁就会升级为轻量级锁。
@@ -783,7 +878,7 @@ Synchronized经过编译，会在同步块的前后分别形成monitorenter和mo
 #### 重量级锁
 
 
-一个线程进入synchronized后便进行**一次CAS**（CAS（owner,null,cur)试图让自己称为owner），没错，这里强调的就是一次。如果第一次CAS失败则说明抢占失败，通常会进行**自适应自旋（重试）**，如果仍然失败则进入entryList同步队列，并且调用park()阻塞当前线程，底层对应系统调用**将当前线程对象映射到的操作系统线程挂起，并让出CPU**，这一步通常代价比较大，因为涉及系统调用和线程切换。如果成功将owner修改为自己，则开始执行同步代码，并且将count加一。执行完毕将count减一，复位owner，并且唤起entryList阻塞的线程（实现上通常唤醒队头线程，不过如果没抢到还会进入entryList队尾，通常流动性很大，不会出现饥饿）。  
+一个线程进入synchronized后便进行**一次CAS**（CAS（owner,null,cur)试图让自己称为owner），没错，这里强调的就是一次。如果第一次CAS失败则说明抢占失败，通常会进行**自适应自旋（重试）**，如果仍然失败则进入entryList同步队列，并且**调用park()阻塞当前线程，底层对应系统调用将当前线程对象映射到的操作系统线程挂起，并让出CPU**，这一步通常代价比较大，因为涉及系统调用和线程切换。如果成功将owner修改为自己，则开始执行同步代码，并且将count加一。执行完毕将count减一，复位owner，并且唤起entryList阻塞的线程（实现上通常唤醒队头线程，不过如果没抢到还会进入entryList队尾，通常流动性很大，不会出现饥饿）。  
 而如果owner线程调用wait，则进入waitSet并阻塞（同样对应park调用），同时让出CPU。只有其他线程调用notify它才会被唤醒，而且唤醒后进入entryList，当owner被复位后，同entryList其他线程进行竞争，当称为owner将从原执行位置继续向下执行。
 
 注意：synchronized阻塞指的通常是synchronized抢占锁失败的行为，即不管互斥锁还是自旋锁指的都是**失败后的处理策略**。
@@ -976,6 +1071,285 @@ AQS的设计基于**模板方法设计模式**。
 如果你想要定义一个自定义组件，仅需要：定义一个实现AQS的静态内部类，组合一个该类型的字段SYN，实现LOCK接口，并且全部委托给这个成员SYN实现即可。唯一需要做的就是：重写AQS中提供的钩子方法（如tryRelease、tryAcquire），同时使用AQS框架已经实现好的方法去实现对应功能（如setExclusiveOwnerThread、getState等）
 
 
+借助AQS实现互斥量
+
+```JAVA
+class Mutex implements Lock {
+    private Syn syn= new Syn();
+
+    @Override
+    public void lock() {
+        syn.acquire(-1);//参数不被tryAcquire使用
+    }
+
+    @Override
+    public void lockInterruptibly() throws InterruptedException {
+        syn.acquireInterruptibly(-1);
+    }
+
+    @Override
+    public boolean tryLock() {
+        return syn.tryAcquire(-1);
+    }
+
+    @Override
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+        return syn.tryAcquireNanos(-1,unit.toNanos(time));
+    }
+
+    @Override
+    public void unlock() {
+        syn.release(-1);
+    }
+
+    @Override
+    public Condition newCondition() {
+        return newCondition();
+    }
+
+    static class Syn extends AbstractQueuedSynchronizer {
+        ConditionObject newCondition(){
+            return new ConditionObject();
+        }
+
+        @Override
+        protected boolean tryAcquire(int arg) {
+            if(compareAndSetState(0,1)){
+                setExclusiveOwnerThread(Thread.currentThread());
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        protected boolean tryRelease(int arg) {
+            if(getState()==1){
+                if(getExclusiveOwnerThread()==Thread.currentThread()){
+                    setExclusiveOwnerThread(null);
+                    setState(0);
+                    return true;
+                }
+            }
+            throw new IllegalMonitorStateException();
+        }
+
+        @Override
+        protected boolean isHeldExclusively() {
+            return getState()==1;
+        }
+    }
+}
+
+    
+    
+```
+
+【1】创建一个内部类实现AQS（如果想要具有公平和非公平实现，可以另外创建两个内部类，将差异方法空出了，然后让两个内部类再次继承Syn）  
+【2】实现Lock接口，并且委托Syn对象去提供实现  
+【3】Syn实现了AQS，就是一个AQS对象，因此可以直接调用AQS框架已经提供出来的方法
+
+### 简述AQS原理
+
+AQS队列同步器，它主要管理了两个队列/链表：同步队列和等待队列。并且维护了一个同步状态state。这个state是volatile修饰  
+通过**读volatile**可以实现加锁的内存语义，而通过**写volatile**实现解锁的内存语义。  
+volatile的写与释放锁具有相同的内存语义，而volatile的读与获取锁具有相同的内存语义。  
+根据happens-before规则，**对一个volatile域的写，happens-before于任意后续对这个volatile的读**。
+
+AQS维护了一个基于双向链表的同步队列，当线程未获取到同步状态时，则该线程会被封装成一个节点，CAS插入队尾，同时调用park()陷入阻塞。  
+队列的首节点最开始是一个哨兵节点（延迟创建），两个队列外的线程同时去获取state，成功获取state的成为owner，而失败的封装成节点插入队列尾部并阻塞。
+
+一般情况下，同步队列中头结点表示的是**获取到同步状态的线程节点**，当头结点代表的线程释放了state（state=0），此时线程在释放state后还需要唤醒**后继节点**（_队首元素释放节点后，只有后继节点有资格参与和外界的竞争_）去获取state。当有线程获取到state时，需要将自己代表的节点更新为头结点。
+
+> 当前线程成功获取state，那么可能有队列外的线程获取失败，便会被封装入节点进入线程。由于队列中的节点都是延迟创建的，因此如果总是能避免竞争（交替获取）便不会创建任何节点入队。  
+> 注意：state有可能是外界线程释放的，也可能是队首节点释放的。最终都会**唤醒头结点的后继节点**，当一个队内节点对应的线程抢占state成功则将自己置为队头元素，相当于变成了新的哨兵，同时将节点指向线程对象的指针置空（相当于线程出队），而一旦state被释放则哨兵（头结点）的后继元素将被唤醒。
+
+这里以aquire为例
+
+```java
+public final void acquire(int arg) {
+        if (!tryAcquire(arg) &&
+            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+            selfInterrupt();
+    }
+
+    
+    
+```
+
+一开始AQS实例的head和tail都是空，在addWaiter时需要初始化，head和tail会共同指向同一个空节点，这个空节点的waitStatus默认值就是0，可以看作哨兵节点。  
+其中addWaiter就是一个底层数据结构入队的过程，返回当前已经插入尾部的节点Node的引用，然后acquireQueud使用这个node去执行抢占state和阻塞的逻辑。
+
+当进入acquireQueud时，node的pre就是node空节点，因此可以直接tryAcquire尝试占有state，如果失败说明外部存在竞争。这时前面的head节点的waitStatus会被调整为signal，然后当前节点阻塞。
+
+```java
+compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+
+    
+    
+```
+
+一旦释放锁（不管是外部还是头部），都会唤醒头部的后继节点，被唤醒后的后继节点如果成功占用锁，那么将会变成新的头结点，并且释放当前头结点
+
+```java
+if (h != null && h.waitStatus != 0) //waitStatus=0不会响应，signal则会响应
+    unparkSuccessor(h);
+
+    
+    
+```
+
+另一方面，如果head为-1（signal）那么后面一定有节点，如果head=0（默认值/初始状态），那么后面的节点一定在设置head=-1的路上，并且没有被阻塞的节点，因此不需要额外执行唤醒。  
+这保证了，**如果waitStatus<0，则后继一定存在需要被唤醒的节点**。
+
+```java
+int ws = node.waitStatus; //头结点释放后会初始化，等同于哨兵——空节点
+if (ws < 0)
+    compareAndSetWaitStatus(node, ws, 0);
+
+    
+    
+```
+
+如果是外部释放锁，当前头结点即使是空节点，它的状态也是-1，因此具备唤醒后继节点的资格。如果是头部节点释放锁，同理。如果头部或者外部释放锁，而被外部线程拿到，则**头部的thread引用已经释放，本质上就是一个哨兵节点（同初始状态的空节点）**  
+（是否是空节点，主要区别是thread引用是否有值）
+
+考虑一种情况，如果同步队列没有等待节点，即线程总是能够**交替获得state**，因此**每当state释放后，同步队列就没有执行唤醒head后继节点的必要**
+
+```java
+shouldParkAfterFailedAcquire(p, node) &&
+    parkAndCheckInterrupt()
+
+    
+    
+```
+
+如果有其他节点入队，则头部waitStatus=0的节点会被再次设置为-1，保证头结点后面的节点不会“死等”下去。前一个方法只有返回true时才会触发park()，即**只有当head（前驱节点）是signal，才能放心进入阻塞状态**，0或者1（cancel）都不可以，因为这会导致节点阻塞后不被唤醒。
+
+对于共享模式，与独占模式主要的不同：自己拿到资源后，**如果还有剩余量，那么会接着唤醒后继节点**（后继接着唤醒后继…以此类推）。而且基于重入的考虑，独占模式下，释放完所有的资源（state=0）时才会唤醒其他线程，而共享模式下，**拥有资源的线程在释放掉部分资源时就可以唤醒后继等待结点**
+
+#### await/signal
+
+ConditionObject是AQS的内部类，每个conditionObject对象都是一个等待队列，只有同步队列队首元素才可以执行await()方法——封装成一个新的节点添加到condition等待队列的队尾，同时通过LockSupport.park()进行阻塞，并且释放state，唤醒同步队列中的后继节点。
+
+> 注意：同步队列的首节点并不会直接加入等待队列，而是把当前线程构封装成一个新的节点并将其加入等待队列中
+
+而当另外一个持有state的线程调用condition的signal方法，会将唤醒在**等待队列**中等待时间最长的节点（**首节点**），在唤醒节点之前，会将等待队列中的节点移动到同步队列的尾部，直到获取到state才会继续恢复执行。
+
+wait和await的实现很相似，都是将线程节点对象在等待队列与同步队列之间移动，并且提供了一些其他特性：awaitNanos超时等待、awaitUninterruptibly()对中断不敏感（线程中断调用后不抛出异常，而是设置中断标志位true）
+
+总结：Condition等待通知的本质就是等待队列 和 同步队列的交互的过程，跟object的wait()/notify()机制一样。Condition是基于同步锁state实现的，而objec是基于monitor实现的
+
+#### 公平与非公平
+
+reentrantLock是Lock接口的实现类，也是基于AQS框架实现的同步组件，可以看作是java代码层面对synchronized的高层次实现。内部有三个内部类，一个是继承了AQS的同步抽象父类syn，另外两个分别基于syn进行了公平与非公平实现。
+
+synchronized默认就是非公平的，可以提供代码执行吞吐量和并发度。  
+【1】lock上锁方法中，调用acquire获取锁之前，会先进行一次CAS尝试占用同步状态  
+【2】重新tryAcquire方法中，如果发现state空闲则会进行一次CAS尝试占用同步状态。（tryAcquire在模板方法至少被调用了两次）  
+以上两次抢占全部失败之后，才会走AQS模板方法的剩余流程。（创建节点、短暂自旋、阻塞）
+
+而公平实现中，仅当队列中没有等待更久的节点时，才会尝试CAS占用（也就是说，只要队列中有其他节点正在排队，则当前线程就必须往后排队，不能插队）  
+公平锁对应的同步队列，节点获取同步状态是有严格的顺序要求的，获取公平锁的线程几乎总是需要创建节点和阻塞，导致线程切换频繁、吞吐量下降、并发度下降。
+
+### 同步组件原理简述
+
+同步组件的实现，本质上都是依赖AQS框架，并且实现框架提供了钩子方法
+
+#### semaphore
+
+semaphore信号量，它的名字表明了它的功能——信号灯，因此它的作用更倾向于**通知**，不过二元信号量也可以用于实现互斥关系或前驱关系。  
+Semaphore主要逻辑：获取state和释放state，可以看作一个共享锁组件。
+
+```java
+compareAndSetState(available, remaining))
+
+    
+    
+```
+
+#### countdownLatch
+
+countDownLatch锁存器，用于同步一组任务，强制他们等待其他任务执行完毕，相当于jdk中的join函数
+
+典型用法：
+
+```java
+CountDownLatch countDownLatch = new CountDownLatch(3);
+Runnable runnable = () -> {
+    countDownLatch.countDown(); //调用三次，await就可以返回了
+};
+for (int i = 0; i < 4; i++) {
+    new Thread(runnable).start();
+}
+countDownLatch.await();
+
+    
+    
+```
+
+将一个程序分为n个互相独立的可解决任务，并创建值为n的CountDownLatch。**当每一个任务完成时，都会在这个锁存器上调用countDown**，被插队的任务调用这个锁存器的await，直至锁存器计数结束
+
+其中**await就是申请一个permit，countDown就是释放一个permit**。创建countDownLatch时，构造函数传入的就是state的值，申请state时（调用await），**只有当state值为0时才能成功申请，否则阻塞**。而countDown就是将state减一。
+
+总结：**创建countDownLatch时，它有若干个state，而调用await的线程将会阻塞直到state的值变成0，而另外一组线程则负责调用countDown将state减少**。
+
+一旦state变成0，那么这个CountDownLatch就算使用完毕了，因此它是不能够被复用的。
+
+#### cyclicBarrier
+
+cyclicBarrier可以达到一种效果，N个线程调用cyclicBarrier.await()进入阻塞（相当于被堵在了一个栅栏处），当N个线程全部调用完毕，则“栅栏打开”，线程集中放行。
+
+```java
+CyclicBarrier cyclicBarrier = new CyclicBarrier(5,() -> System.out.println("放行"));
+Runnable runnable = () -> {
+    try {
+        cyclicBarrier.await();//阻塞
+    } catch (InterruptedException | BrokenBarrierException e) {
+        e.printStackTrace();
+    }
+};
+for (int i = 0; i < 5; i++) {
+    new Thread(runnable).start();
+}
+
+    
+    
+```
+
+当第N个线程调用await方法，则N个线程集体放行，并且第N个方法将执行回调函数（其实就是执行传入的runnable接口对应的run方法）
+
+**cyclicBarrier依赖reentrantLock和condition对象实现**，每个cyclicBarrier底层对应一个reentrantLock实例。**可以循环使用，每一代绑定一个generation对象**。当调用reset时，将会将当前屏障设置为已经破坏状态，并且唤醒所有阻塞的线程，并且创建新的generation对象
+
+```java
+int index = --count;
+if (index == 0) { // 释放屏障
+    boolean ranAction = false;
+    try {
+        final Runnable command = barrierCommand;
+        if (command != null)
+            command.run();// 在最后一个线程上执行回调任务的run方法
+        ranAction = true;
+        nextGeneration();// 相当于自动重置
+        return 0;
+    } finally {
+        if (!ranAction)
+            breakBarrier(); //出异常，则将当前屏障设置为已破坏状态
+    }
+}
+
+    
+    
+```
+
+调用await底层对应count变量减一,当减少到0则唤醒所有的等待线程并重置。（parties保存总屏障数量，count对应剩余屏障数量）
+
+```java
+if (!timed)
+    trip.await(); //阻塞于lock的condition同步队列
+else if (nanos > 0L)
+    nanos = trip.awaitNanos(nanos);
+```
+
 ## 5. AQS
 
 ```JAVA
@@ -1163,7 +1537,218 @@ unparkSuccessor分为两类,若是非公平锁,则唤醒的是等待队列中从
 
 
 ## CAS和锁
+### 理解锁
 
+锁是什么？一个变量。线程A看见这个变量已经有主人了，它要么等待、要么去sleep、要么放弃，线程B释放锁就是将这个锁变量的主人重新置空。那么无论是获取锁的操作还是释放锁的操作，本身都是应该是原子的，应该是一个事务！我们平时更关心的是加锁和解锁之间的代码，那么上锁和解锁本身如何保证原子性？我只能说方式有很多，不过主流的实现方案是基于CAS指令。
+
+应用层次的锁，解决的是多个进/线程并发访问同一块内存的问题，而CPU层面的锁解决了多个核心并发访问同一块内存的问题。由于应用层面的锁是对底层的封装与抽象，因此一旦锁获取失败，操作系统都可以通过系统调用挂起一个线程，让出CPU。
+
+> 起初程序是原子的，为了程序实现并发来提升效率，引入了“执行到一半”的第三种状态，而上锁的操作，本质上是使用一个原子指令来将锁变量置位，即保证程序原子性的原理就是**使用一个原子性指令来保证另外一堆非原子性指令的原子性**。
+
+总结，锁就是一个变量，访问一个变量前先抢占锁，这种访问策略也称为悲观锁策略。阻塞和非阻塞主要指的是“抢占锁失败后”的处理策略。阻塞锁底层依赖系统调用（mutex互斥量），非阻塞锁一般都会继续尝试，这种锁也称为自旋锁。（既然都“上锁”了，那么无法上锁肯定是不退出的，尝试失败则退出一般称为tryLock，上锁的中途能够被外界中断则称为lockInterruptibly，这些都是Lock接口提供的行为，synchronized是没有的）
+
+### CAS
+
+CAS是什么？比较与交换，它是一个指令，不管从低级的cpu指令还是高级的代码都能看见它的身影。  
+jdk层面的 CAS API 可以由unsafe类提供或者使用JUC的Atomic原子类提供的CAS相关方法。  
+**CAS底层实现依赖处理器的指令集（cmpxchg）**，jdk的CAS方法无疑都采用本地实现，处理器的CAS是一条原子指令，也就是说比较和交换整个动作可以一次性完成。
+
+CAS指令集需要三个操作数：需要修改资源的内存地址，预期值，目标值。  
+CPU访问内存地址，当资源的实际值等于预期值时，CPU将内存地址上的资源修改为目标值。由于CAS是处理器的单条指令，不会被打断，因此可以保证原子性。
+
+CAS是无阻塞同步的一种解决方案，它可以实现乐观锁。我的理解：**CAS可以完成上锁操作本身**。
+
+> CAS是实现“上锁”的一种方法，也可以使用关中断、testAndSet等
+
+### 乐观锁和悲观锁
+
+什么是悲观锁？  
+访问一个资源之前，一定要加锁，否则可能出现读写冲突或者写写冲突等线程安全问题。  
+这个锁可以是_自旋锁_——定义一个**锁变量**，CAS自旋去修改这个变量，如果修改失败就一直自旋着，其中上锁成功的线程就相当于进入了同步代码块。  
+这个锁也可以是_互斥锁/阻塞锁_——仍然是有一个锁变量，此时不再是无限CAS自旋，而是自旋若干次，如果修改失败就调用阻塞函数/系统调用，将线程阻塞起来，主动放弃CPU——这便是synchronized的基本原理
+
+什么是乐观锁？  
+访问一个资源之前，认为没有竞争发生，**不使用锁变量，而是直接CAS修改资源本身**（读操作不需要加锁）。如果失败了如何进行后序处理看具体业务场景。
+
+### 内存语义
+
+CAS不仅可以用于线程同步，而且可以用于线程通信。  
+CAS操作同时具有volatile读和volatile写的内存语义，编译器不能对CAS前面和后面的任意指令进行重排序。如果程序运行在多处理器计算机，那么CAS操作被翻译为汇编指令时会加上**lock前缀**  
+CAS在x86处理器的大致写法是lock cmpxchg a,b,c 。  
+**单核处理器**是没必要写lock前缀的，因为cmpxchg本身是一个原子指令，这意味着执行这条指令时，能够一次性完成一次内存读和内存写，中间不会打断。  
+但是多核处理器下，加上lock前缀，意味着：  
+【1】将当前处理器缓存行的数据回写内存（写入内存前，通过锁总线，或者锁缓存行的方式保证同步）  
+【2】其他核心存储该变量的相应缓存行标记为invalidate（MESI协议）
+
+> 只要某个核心使用了cmpxchg，其他的核心都会停下来（类似自旋），因此多个CPU 核心同时执行这条指令（同一块内存），只有一个核心会成功，其他的将会排队失败。
+
+volatile和CAS可以说是JUC实现的基石  
+（注意：cmpxchg不是一个特权指令，不需要切换内核态）
+
+#### MESI缓存一致性协议
+
+（MESI只是缓存一致性协议的一种）  
+**Modified已修改 - exclusive独占 - shared 共享 - invalidated 已失效**  
+四个状态用于标志缓存行，协议对各个状态的转移做了详细的规定。
+
+**修改**表示cache中的block已经被更新，但是没有更新到内存。  
+**失效**表示block中的数据已经失效，不可以读取。（必须从内存读取）  
+独占、共享表示block中的数据是一致的（**独占**：数据只存储在一个CPU核心的cache中，其他核心的cache没有该数据，写独占cache时不需要通知其他的核心。）独占状态下，如果有其他核心从内存中读取相同数据到cache中，则独占状态的数据变为共享状态（**共享**：当需要更新cache时，必须先进行一个**广播**，要求其他cache将block中的相同数据标记为无效，然后再更新当前cache的数据）
+
+多个线程（核心）同时读写**同一个缓存行的不同变量**，导致缓存行**频繁失效**的现象称为伪共享。其中一个方案是空间换时间，通过空行填充，让某些变量独占一个缓存行，浪费一部分cache，换来性能的提升
+
+**写缓冲区**：  
+CPU缓冲区为了保证数据一致性，遵循MESI缓存一致性协议，**某个CPU更新数据后，需要向其他CPU发出invalidate信号，并且得到其他CPU确认信号后才会进行写缓冲区操作**，但是等待确认的这段时间CPU核心是无效的，因此引入写缓存区——**将数据先写入写缓冲区，等待确认完毕时，再将数据取出并写入本地缓存**。  
+（引入写缓冲区后，一个写指令发出后，放入缓冲区后就直接往下执行了，也就是说写操作不是立即生效的）
+
+写缓冲区不是无穷大的，而且处理器有时还是需要等待失效确认的返回（写缓冲区失效的情况），引入**失效队列**：  
+【1】对于收到的所有invalidate请求，必须立即返回确认  
+【2】invalidate并不会真正执行，而是放入失效队列，在方便的时候才回去执行  
+【3】处理器不会发生任何消息给所处理的缓存条目，直到处理invalidate请求  
+（相当于使用一个队列，临时存储invalidate请求，收到请求后立刻回复，之后CPU再异步处理这些请求，失效队列的引入导致线程读到**“本应该失效却还没有失效”的脏数据**）
+
+写缓存的引入使得指令看起来是乱序执行的——**写缓冲区和本地缓存行的数据是不一致的**。  
+**store forwarding（存储转发）**：当CPU执行读操作时，会从写缓冲区和缓存行中读。  
+另一方面，机器指令本身也会被处理器重排序，因为CPU无法确定多线程环境下哪些变量具有相关性（只能保证单线程情况下，重排序不会影响最终结果），但是CPU设计者提供了**内存屏障**供程序员规范CPU行为。
+
+内存屏障是CPU设计者提供给程序员的一组指令，让程序员去约束CPU的行为，**读类型的内存屏障**会使得**失效队列**的invalidate请求立即更新，而**写类型的内存屏障**会使**写缓冲区**的数据立即写入。
+
+> 内存屏障是CPU设计者为程序员提供的一组方法，可以约束CPU的行为，不同的CPU具有不同的内存屏障，相当于为程序员提供相应工具，将保证线程安全的责任交给程序员。  
+> 程序员通过使用内存屏障，告诉CPU哪些部分不应该被（重排序）优化，底层就是通过临时禁用失效队列、写缓冲区等实现的。
+
+#### lock前缀
+
+volatile、CAS（synchronized底层也是基于CAS上锁的）被编译为汇编指令后（即时编译器），都会在相应指令前增加一个lock前缀，lock前缀正是这些关键字实现有序性和可见性的基础。  
+LOCK前缀在多核处理器中引发两件事  
+【1】让当前处理器缓存行的数据回写入主存  
+【2】其他核心维护该变量相应的缓存行过期/无效，下次取需要从主存中获取
+
+CPU为了提升效率，通过增加高速缓存来缓解读写内存造成的（CPU计算和访存之间的）速度差，而告诉缓存的最小单位是缓存行，因此CPU读数据都是一块块读的，多核处理机中，每个核心都有自己独立的缓存（L1/L2），各个核心通过**环总线**连接在一起，并且**嗅探**总线上信号，为了保证各个核心缓存行中的数据都是一致的，有两种解决思路（这也是lock前缀执行上的，两种实现方式）。  
+【1】锁总线  
+执行指令期间，核心发出Lock信号，总线仲裁机构该核心独占总线，而其他核心必须等待，代价很大，非主流方案。  
+【2】锁缓存，而且缓存之间需要遵守一个缓存一致性协议  
+各个CPU核心都是通过环总线连接在一起的，每个核心都维护自己缓存的状态，一旦某个核心修改了自己缓存的内容，就会通过环总线向其他核心发出信号，其他核心根据MESI协议修改相应的缓存行状态。
+
+**Lock前缀的汇编指令会强制写入主存，也可以避免前后指令的CPU重排序，并且及时让其他核心中的相应缓存行失效（从而利用MESI达到符合预期的效果）**。  
+非lock前缀的汇编指令执行写操作时，可能不会立刻生效，因为存在写缓存区，**lock前缀的指令在功能上可以等价内存屏障**，让写操作立刻生效（或者说jvm插入内存屏障，平台通过CPU指令实现对应效果）。
+
+总结：为什么volatile、synchronized、CAS等能保证可见性、有序性，因为它们共同的底层实现lock前缀，满足了MESI缓存一致性协议的触发条件，才使得变量具有缓存一致性。而普通的读写涉及各种优化，如写缓存、失效延迟处理等导致MESI条件无法触发，进而产生一系列数据不一致的问题。
+
+### 特点
+
+这里我们讨论API层面的CAS。因为CAS可以分为CAS修改锁变量和CAS乐观锁，我们这里讨论CAS乐观锁，而这里乐观锁指代CAS自旋乐观锁。  
+在竞争不激烈的情况下，CAS可以提高系统的吞吐量——说白了，就是在一段时间内，让CPU多执行用户代码，少执行操作系统代码如（系统调用、切换上下文等）。如果竞争特别激烈，或者同步代码执行时间特别长，那么就使用自旋CAS乐观锁就是白白**浪费CPU资源**——虽然CPU一直在执行用户代码，但是执行循环啥也不干，还不如把CPU让给别人呢——这种情况不如主动申请阻塞、转让CPU给其他线程。
+
+> 当多个核心针对同一内存地址指向CAS指令时，其实他们是在试图修改每个核心自己维护的缓存行，假如两个核心同时同时对同一内存地址执行CAS指令，则他们都会尝试向其他核心发出invalidate，仲裁获胜的核心将先一步发出invalid，失败者则需要对自己的缓存行invalidate，读取胜利者修改后的内存值，CAS指令执行失败。
+> 
+> 因此**锁并没有消失，只是转嫁到了环总线上的总线仲裁协议上，而多核同时针对一个地址CAS会导致对应的缓存行频繁失效，降低性能，因此CAS不能滥用**
+
+另外，CAS指令提供的总是**一个变量的内存地址**，也就是说乐观锁只能CAS修改某一个变量的值——不如独占锁变量，想怎么修改就怎么修改来的爽快啊。
+
+> 也可以将多个变量包装为一个对象（结构体），通过JUC的atomicReference来实现。当然了，肯定还是加锁更方便
+
+### ABA
+
+这个我想单独聊一聊。  
+ABA问题：  
+首先，CAS指令的三个参数实际上都是内存地址，比较两个内存地址的值，然后考虑要不要把第一个内存地址的值修改为第三个内存地址的值，既然涉及到寻址，那么**两次寻址之间必然具有时间间隔**，我们只能保证CAS指令执行是原子的，在CPU寻址过程中（三个地址的寻址过程），源地址上的值从A变成B，再变成A是可能的。
+
+造成以上问题的主要原因，是因为我们使用CAS时的逻辑就是:**值相同，就交换**。如果我们的业务禁止ABA问题，我们完全可以将CAS的逻辑更改为：**值+时间戳或版本号 相同，则交换**。
+
+> 严格意义上，ABA不能归于CAS，而是我们“错误”的编码。CAS没有错，因为无论我们传入值还是值+版本号，它看来就是“变量的实际值”，ABA问题更应该被归于业务逻辑范畴。
+
+ABA解决思路就是：CAS输入不但考虑值本身，还附带具有标识意义的字段。例如JUC的atomicStampedReference（额外维护了一个时间戳）、mysql可以维护一个version字段（mybatis plus 提供了乐观锁功能，本质上就是维护额外版本号）
+
+_总结：  
+造成ABA问题的不是CAS指令本身，因为它只是一个原子指令，出现ABA问题不是执行CAS的时候，而是CPU为CAS指令加载值的过程中。_
+
+### 写一个自旋锁
+
+不要把自旋锁和乐观锁搞混，一般说乐观锁普遍指的是CAS自旋修改目标变量（不加锁直接修改资源），这里采用循环的方式更改锁变量
+
+自旋锁使用场景：**并发度不高**，**临界代码执行时间不长的场景**。
+
+这里使用计数器count实现可重入效果，如果直接使用布尔值表示状态那么就是不可重入锁，不可重入锁一旦连着调用两次lock()就会死锁，因此推荐使用可重入锁——避免死锁
+
+```
+    private AtomicReference<Thread> owner = new AtomicReference<>();//保证内存可见性
+    private int count=0;//重入次数
+
+    
+```
+
+上锁
+
+```
+    public void lock(){
+        Thread cur = Thread.currentThread();
+        if(owner.get()==cur){
+            //重入
+            count++;
+            return;
+        }
+        //自旋获取锁:如果当前owner等于期望值null，则CAS设置为cur
+        while (!owner.compareAndSet(null,cur)){
+            System.out.println("自旋");
+        }
+    }
+
+    
+```
+
+解锁
+
+```
+    public void unlock(){
+        Thread cur =Thread.currentThread();
+        //持有该锁的线程才可以解锁
+        if(owner.get()==cur){
+            if(count>0){
+                count--;
+            }else {
+                owner.set(null);
+            }
+        }
+
+    }
+
+
+    
+```
+
+Volatile修饰数组或者集合只能保证指针（地址）的内存可见性，如果某一个线程将指针修改指向，其他线程可以立即知道。  
+**而元素修改的可见性应该使用atomic变量来保证——atomicArray和atomicReference**  
+atomic类封装了unsafe类提供的CAS、putObjectVolatile等方法，便于非框架开发用户（普通程序员）的使用。
+
+**保证内存可见性的arr[i]=newValue**
+
+```
+public final void set(int i, E newValue) { 
+    unsafe.putObjectVolatile(array, checkedByteOffset(i), newValue);
+}
+
+    
+```
+
+**CAS:如果arr[i]等于期望值except，则更新为update**
+
+```
+private boolean compareAndSetRaw(long offset, E expect, E update) {
+    return unsafe.compareAndSwapObject(array, offset, expect, update);
+}
+
+    
+```
+
+JUC的atomic就是基于unsafe类实现的，而且封装了unsafe类的各种方法，其中原子操作就是基于CAS自旋实现的（乐观锁）  
+Atomic调用unsafe方法，unsafe方法调用C语言，C语言再调用汇编语言，最终生成一条CPU指令cmpxchg，因此CAS是具有原子性，不会被打断。
+
+atomicLong在**高并发**下，大量线程同时竞争更新同一个原子变量（因为long是64位的，底层会被拆分为两个32位，分别为高位和低位），CAS成功率小，失败的线程尝试自旋，会浪费很多CPU资源。（atomicDouble也有这样的问题）  
+**LongAdder是jdk8引入的，是对atomicLong的改进，在高并发场景更加高效。**
+
+LongAdder可以概括成这样：内部核心数据value分离成一个数组(Cell)，每个线程访问时,通过哈希等算法映射到其中一个数字进行计数，而最终的计数结果，则为这个数组的求和累加。
+
+简单来说就是**将一个值分散成多个部分，每个线程操作这个值的一部分，最后值相加，在并发的时候就可以分散压力（只有在线程哈希冲突时才会产生竞争）**，性能有所提高。
 
 
 ## ThreadLocal
@@ -1189,3 +1774,18 @@ unparkSuccessor分为两类,若是非公平锁,则唤醒的是等待队列中从
 1.  传递数据 ： 保存每个线程绑定的数据，在需要的地方可以直接获取, 避免参数直接传递带来的代码耦合问题
     
 2.  线程隔离 ： 各线程之间的数据相互隔离却又具备并发性，避免同步方式带来的性能损失
+
+
+
+## java线程同步方法
+
+什么是线程同步?
+多个线程并发访问共享数据时,保证共享数据在同一时刻只能被规定个数的线程使用(一般一条,信号量一些).互斥是实现同步的一种手段
+临界区,互斥量,信号量都是互斥的实现方式
+
+1. 互斥同步方法
+   synchronized和reentranlock
+2. 非阻塞同步方法
+   乐观锁
+3. 无同步方法
+   采用线程本地存储ThreadLocal：如果一段代码中所需要的数据必须与其他代码共享，那就看看这些共享数据的代码是否能保证在同一个线程中执行完，如果能保证，就可以把共享数据的可见范围限制在同一个线程之内，这样，无需同步也能保证线程之间不出现数据争用
