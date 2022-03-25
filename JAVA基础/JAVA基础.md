@@ -937,7 +937,7 @@ JVM使用**方法调用栈（method invocation stack）**来跟踪每一个线�
 
 #### 判断gcroots的原则是什么
 
-
+####  Survivor不够存放，Old也不够存放
 
 ## JUC
 
