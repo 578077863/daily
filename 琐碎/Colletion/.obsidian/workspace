@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "算法/彩笔笔记.md",
+            "file": "RPC/快Run.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "567. 字符串的排列",
+                "query": "设计模式",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "算法/彩笔笔记.md"
+                "file": "RPC/快Run.md"
               }
             }
           },
@@ -91,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "算法/彩笔笔记.md",
+                "file": "RPC/快Run.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "算法/彩笔笔记.md",
+                "file": "RPC/快Run.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -122,15 +122,15 @@
   },
   "active": "ccf9ebfcf030186a",
   "lastOpenFiles": [
-    "算法/彩笔笔记.md",
-    "背诵/API.md",
-    "背诵/笔记.md",
+    "RPC/快Run.md",
+    "MySQL/attachments/Pasted image 20220306161816.png",
+    "设计模式/设计模式.md",
     "计算机网络/计算机网络.md",
-    "RPC/Netty.md",
-    "背诵/大佬语录.md",
-    "java/Java基础.md",
-    "操作系统/操作系统.md",
+    "面试杂烩/面经.md",
     "MySQL/MySQL.md",
-    "开发经验/开发经验.md"
+    "面试杂烩/玛德.md",
+    "面试杂烩/介绍.md",
+    "面试杂烩/待处理.md",
+    "面试杂烩/面试.md"
   ]
 }
