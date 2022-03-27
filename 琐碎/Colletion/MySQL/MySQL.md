@@ -1784,3 +1784,65 @@ buffer pool总大小=(chunk大小 * buffer pool数量)的2倍数
 SHOW ENGINE INNODB STATUS 当你的数据库启动之后，你随时可以通过上述命令，去查看当前innodb里的一些具体情况，执行SHOW ENGINE INNODB STATUS就可以了。此时你可能会看到如下一系列的东西： Total memory allocated xxxx; Dictionary memory allocated xxx Buffer pool size xxxx Free buffers xxx Database pages xxx Old database pages xxxx Modified db pages xx Pending reads 0 Pending writes: LRU 0, flush list 0, single page 0 Pages made young xxxx, not young xxx xx youngs/s, xx non-youngs/s Pages read xxxx, created xxx, written xxx xx reads/s, xx creates/s, 1xx writes/s Buffer pool hit rate xxx / 1000, young-making rate xxx / 1000 not xx / 1000 Pages read ahead 0.00/s, evicted without access 0.00/s, Random read ahead 0.00/s LRU len: xxxx, unzip_LRU len: xxx I/O sum[xxx]:cur[xx], unzip sum[16xx:cur[0] 
 
 下面我们给大家解释一下这里的东西，主要讲解这里跟buffer pool相关的一些东西。 （1）Total memory allocated，这就是说buffer pool最终的总大小是多少 （2）Buffer pool size，这就是说buffer pool一共能容纳多少个缓存页 （3）Free buffers，这就是说free链表中一共有多少个空闲的缓存页是可用的 （4）Database pages和Old database pages，就是说lru链表中一共有多少个缓存页，以及冷数据区域里的缓存页 数量 （5）Modified db pages，这就是flush链表中的缓存页数量 （6）Pending reads和Pending writes，等待从磁盘上加载进缓存页的数量，还有就是即将从lru链表中刷入磁盘的数 量、即将从flush链表中刷入磁盘的数量 （7）Pages made young和not young，这就是说已经lru冷数据区域里访问之后转移到热数据区域的缓存页的数 量，以及在lru冷数据区域里1s内被访问了没进入热数据区域的缓存页的数量 （8）youngs/s和not youngs/s，这就是说每秒从冷数据区域进入热数据区域的缓存页的数量，以及每秒在冷数据区 域里被访问了但是不能进入热数据区域的缓存页的数量 （9）Pages read xxxx, created xxx, written xxx，xx reads/s, xx creates/s, 1xx writes/s，这里就是说已经读取、 创建和写入了多少个缓存页，以及每秒钟读取、创建和写入的缓存页数量 （10）Buffer pool hit rate xxx / 1000，这就是说每1000次访问，有多少次是直接命中了buffer pool里的缓存的 （11）young-making rate xxx / 1000 not xx / 1000，每1000次访问，有多少次访问让缓存页从冷数据区域移动到 了热数据区域，以及没移动的缓存页数量 （12）LRU len：这就是lru链表里的缓存页的数量 （13）I/O sum：最近50s读取磁盘页的总数 （14）I/O cur：现在正在读取磁盘页的数量
+
+
+### 调度算法
+IO请求转换为Block IO请求之后，会把这个Block IO请求交给IO调度层，在这一层里默认是用CFQ公平调度算法 的 
+也就是说，可能假设此时你数据库发起了多个SQL语句同时在执行IO操作。 
+
+有一个SQL语句可能非常简单，比如update xxx set xx1=xx2 where id=1，他其实可能就只要更新磁盘上的一个 block里的数据就可以了 但是有的SQL语句，比如说select * from xx where xx1 like "%xx%"可能需要IO读取磁盘上的大量数据。 
+那么此时如果基于公平调度算法，就会导致他先执行第二个SQL语句的读取大量数据的IO操作，耗时很久，然后第一 个仅仅更新少量数据的SQL语句的IO操作，就一直在等待他，得不到执行的机会。 
+所以在这里，其实一般建议MySQL的生产环境，需要调整为deadline IO调度算法，他的核心思想就是，任何一个IO 操作都不能一直不停的等待，在指定时间范围内，都必须让他去执行。 
+所以基于deadline算法，上面第一个SQL语句的更新少量数据的IO操作可能在等待一会儿之后，就会得到执行的机 会，这也是一个生产环境的IO调度优化经验。
+
+### 文件句柄被限制导致连接数上不去
+这个时候如果MySQL报异常说Too many Connections，就说明目前MySQL甚至都无法建立400个网络连接？这 也太少了吧！毕竟是高配置的数据库机器！
+于是我们检查了一下MySQL的配置文件，my.cnf，里面有一个关键的参数是max_connections，就是MySQL能建立 的最大连接数，设置的是800
+
+那奇怪了，明明设置了MySQL最多可以建立800个连接，为什么居然两台机器要建立400个连接都不行呢？
+
+这个时候我们可以用命令行或者一些管理工具登录到MySQL去，可以执行下面的命令看一下：
+
+show variables like 'max_connections'
+
+此时你可以看到，当前MySQL仅仅只是建立了214个连接而已！
+
+所以我们此时就可以想到，是不是MySQL根本不管我们设置的那个mac_connections，就是直接强行把最大连接数设 置为214了？于是我们可以去检查一下MySQL的启动日志，可以看到如下的字样
+
+Could not increase number of max_open_files to more than mysqld (request: 65535) 
+Changed limits: max_connections: 214 (requested 2000) 
+Changed limits: table_open_cache: 400 (requested 4096)
+
+所以说，看看日志就很清楚了，MySQL发现自己无法设置max_connections为我们期望的800，只能强行限制为214 了！
+
+这是为什么呢？简单来说，就是因为底层的linux操作系统把进程可以打开的文件句柄数限制为了1024了，导致 MySQL最大连接数是214！
+
+可能有的人会疑惑说，为什么linux的文件句柄数量被限制了，MySQL最大连接数就被限制了呢？
+
+今天我们继续讲解昨天的那个案例背景，其实就是经典的Too many connections故障，他的核心就是linux的文件句 柄限制，导致了MySQL的最大连接数被限制，那么今天来讲讲怎么解决这个问题。
+
+其实核心就是一行命令： ulimit -HSn 65535 
+然后就可以用如下命令检查最大文件句柄数是否被修改了 
+
+cat /etc/security/limits.conf
+cat /etc/rc.local
+
+如果都修改好之后，可以在MySQL的my.cnf里确保mac_connections参数也调整好了，然后可以重启服务器，然后重 启MySQL，这样的话，linux的最大文件句柄就会生效了，MySQL的最大连接数也会生效了。 
+
+然后此时你再尝试业务系统去连接数据库，就没问题了！
+
+另外再给大家解释一个问题，有人还是疑惑说，为什么linux的最大文件句柄限制为1024的时候，MySQL的最大连接 数是214呢？ 
+这个其实是MySQL源码内部写死的，他在源码中就是有一个计算公式，算下来就是如此罢了！
+
+然后再给大家说一下，这个linux的ulimit命令是干嘛用的，其实说白了，linux的话是默认会限制你每个进程对机器资 源的使用的，包括可以打开的文件句柄的限制，可以打开的子进程数的限制，网络缓存的限制，最大可以锁定的内存 大小。 
+因为linux操作系统设计的初衷，就是要尽量避免你某个进程一下子耗尽机器上的所有资源，所以他默认都是会做限制 的。 
+那么对于我们来说，常见的一个问题，其实就是文件句柄的限制。 
+因为如果linux限制你一个进程的文件句柄太少的话，那么就会导致我们没办法创建大量的网络连接，此时我们的系统 进程就没法正常工作了
+
+我们平时可以用ulimit命令来设置每个进程被限制使用的资源量，用ulimit -a就可以看到进程被限制使用的各种资 源的量
+
+比如 core file size 代表的进程崩溃时候的转储文件的大小限制，max locked memory就是最大锁定内存大小，open files就是最大可以打开的文件句柄数量，max user processes就是最多可以拥有的子进程数量。 
+设置之后，我们要确保变更落地到/etc/security/limits.conf文件里，永久性的设置进程的资源限制 
+所以执行ulimit -HSn 65535命令后，要用如下命令检查一下是否落地到配置文件里去了。
+cat /etc/security/limits.conf 
+cat /etc/rc.local

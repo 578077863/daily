@@ -1012,8 +1012,10 @@ CMS对CPU资源十分敏感，并发阶段将会**占用一部分操作系统线
 **CMS默认启动的线程数是 (ParallelGCThreads + 3) / 4**，**ParallelGCThreads是年轻代并行收集器的线程数**，可以当做是 **CPU 最大支持的线程数**。当CPU资源比较紧张时，受到CMS收集器线程的影响，应用程序的性能在垃圾回收阶段可能会非常糟糕
 
 >-XX：+use concMarkSweep GC 手动指定使用CMS执行内存回收任务，同时useParNewGC会自动打开——parNew（年轻代）+CMS（老年代）+serial old（老年代备选）  
->-XX:CMSFullGCsBeforeCompaction：设置在执行多少次Full GC后对内存空间进行压缩整理  
+>-XX:CMSFullGCsBeforeCompaction：设置在执行多少次Full GC后对内存空间进行压缩整理  ，默认 是0，意思就是每次Full GC之后都会进行一次内存整理。
 >-XX:ParallelCMSThreads：设置CMS的线程数量
+>-XX:+UseCMSCompactAtFullCollection：在Full GC之后要再次进行“Stop the World”，停止工作线程，然后进行碎片整理，就是把存活对象挪到一起，空出来大片 连续内存空间，避免内存碎片。
+>XX:CMSInitiatingOccupancyFaction：参数可以用来设置老年代占用多少比例的时候触发CMS垃圾回收，JDK 1.6里面默认的值是 92%。
 
 
 
@@ -1403,3 +1405,11 @@ HotSpot会在所有方法的临返回之前，以及所有非counted loop的循�
 ##### 从 0 开始带你成为JVM实战高手
 18：
 实际上为了避免动态年龄判定规则把Survivor区中的对象直接升入老年代，在这里如果新生代内存有限，那么可以调整"- XX:SurvivorRatio=8"这个参数，默认是说Eden区比例为80%，也可以降低Eden区的比例，给两块Survivor区更多的内存空间，然后 让每次Minor GC后的对象进入Survivor区中，还可以避免动态年龄判定规则直接把他们升入老年代。
+
+#### 只做young GC
+“一个面试题，parnew+cms的gc，如何保证只做ygc，jvm参数如何配置？
+
+我的回答（这里指该同学回答）: 加大分代年龄，比如默认15加到30; 修改新生代老年代比例，比如新生代老年代比例改成2:1 修改e区和s区比例，比如改成6:2:2
+
+#### 为什么新生代GC比老年代GC快这么多
+因为新生代存活对象少，而老年代大多都是存活对象

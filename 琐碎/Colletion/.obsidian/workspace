@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "java/JVM.md",
+            "file": "算法/彩笔笔记.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "15",
+                "query": "567. 字符串的排列",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "java/JVM.md"
+                "file": "算法/彩笔笔记.md"
               }
             }
           },
@@ -91,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "java/JVM.md",
+                "file": "算法/彩笔笔记.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "java/JVM.md",
+                "file": "算法/彩笔笔记.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -122,15 +122,15 @@
   },
   "active": "ccf9ebfcf030186a",
   "lastOpenFiles": [
-    "java/JVM.md",
+    "算法/彩笔笔记.md",
+    "背诵/API.md",
+    "背诵/笔记.md",
+    "计算机网络/计算机网络.md",
+    "RPC/Netty.md",
+    "背诵/大佬语录.md",
+    "java/Java基础.md",
     "操作系统/操作系统.md",
     "MySQL/MySQL.md",
-    "MySQL/开发.md",
-    "MySQL/练习.md",
-    "计算机网络/计算机网络.md",
-    "算法/彩笔笔记.md",
-    "redis/redis.md",
-    "redis/练习.md",
-    "背诵/笔记.md"
+    "开发经验/开发经验.md"
   ]
 }
