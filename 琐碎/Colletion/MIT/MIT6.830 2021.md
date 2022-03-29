@@ -29,7 +29,7 @@ getPage(tid,pageId, Permissions perm)
 ```
 
 
-```java
+```markdown
 
 首先我们锁的类型有两种,共享锁和独占锁,我定义了一个类,PageLock,该类具有两个静态常量(以0和1分别代表锁的类型),两个实例变量(加锁的事务id, 另一个变量则代表该锁的类型)
 
@@ -65,7 +65,89 @@ getPage(tid,pageId, Permissions perm)
 
 
 
+
+
+
+
+commit:
+先判断是commit还是rollback:
+若是commit,那就需要flushPages,先遍历LRU链表,找出哪些数据页是当前事务修改过的,对该数据页调用setBeforeImage(),即将该数据页的数据转换成字节流保存数据页的oldData字节数组中,然后开始进行刷盘,先根据要刷盘的数据页中的oldData字节数组和数据页的pid new出一张新的数据页,将数据页和
+
+对数据页第一次加载到内存需要调用setBeforeImage,保存初始版本,用于事务回滚,直接根据事务id找到对应修改的数据页,调用getBeforeImage覆盖回滚
+
+由于数据页的写不能一次性完成,可能写一半机器宕机了,这里的办法是日志先刷到硬盘上,再写数据页到硬盘上
+
+
+事务将修改的数据页写入到硬盘后,调用当前数据页的setBeforeImage,因为已经成功提交该数据页到硬盘上了
+
+日志这东西直接暴力记住两张数据页和最后一次的事务id
+
+
+
+我采用:no-steal/force,事务提交时,不断地写log刷页,不断写update记录,然后刷完全部脏页后写 commit记录,更新一下 日志的起始地址
+Database.getLogFile().logCommit(tid);  
+Database.getLogFile().force();
+
+
+通过这样子, 日志起始地址后面就全是需要回滚的
+
+日志中Map数据结构记录着当前事务第一条日志记录的位置，那这条记录什么时候产生的呢？是事务begin时写入到日志中
+
+recover 获取当前chickpoint的位置往后recover
+
+每次调用commit都会更新checkpoint的地址
+
+写update记录也会移动checkpoint，奇怪
+
+
+事务回滚：revocerPages（tid）根据事务id找到其修改的数据页，调用数据页的beforeImage()方法，拿到前一个版本的数据页，将数据页的引用指向前一个版本的数据页，并放到缓冲池中
 ```
+
+
+
+# 聚合函数(Aggregate)
+```markdown
+
+传入的 groupby字段的索引下标和数据类型,聚合字段的索引下标,操作Op,通过操作Op的类型通过拿到对应的聚合函数处理器,而这些聚合函数处理器是基于策略模式创建的,目的是做解耦
+
+聚合函数处理器实现逻辑:
+首先创建一个抽象父类,该父类必须具备一个KV值映射的数据结构,这里我使用hashMap来实现,因为是单个线程来执行,不存在线程安全问题. 用hasmMap存储 groupby 的字段的值作为 key,然后结果作为value,当然了,若是没有groupby字段,则统一使用一个null来作为key值.
+
+各个子类自己实现handler方法, Max,Min,Sum,Avg,Count
+
+
+在构造函数中,根据聚合字段完成对聚合处理器的选择,判断是否有group字段,没有就设置一个常量作为group字段的值
+
+
+当调用Aggregate类的 open方法, 首先打开数据源,while对该数据源进行调用上面选择好的Aggregator实现类的mergeTupleIntoGroup方法将一条条数据传送进去,在该方法中 先判断 group字段是否为null,若不为null则拿到元组的对应groupby字段的类型与要groupby字段的类型想匹配,若都通过,则进行下一步否则抛异常
+
+若是groupby字段的索引下标为 -1, 代表着groupby字段为null,这时候创建一个String变量作为key,也就是分组字段的值,还有要聚合的字段Field,找到对应的处理器调用其handler方法
+
+调用该处理器的iterator方法,
+
+```
+
+
+## 增删
+```markdown
+HeapFile先通过缓冲池对接下来要获取的数据页加写锁，判断是否有空槽，没有空槽就释放锁，读取下一数据页，若是有空槽则直接调用数据页的insert(tuple)方法,在数据页的操作中,首先判断该记录的字段类型是否与当前数据页记录的字段类型相匹配
+若匹配就判断一下当前数据页是否还有空槽,因为我们不知道谁会调用这个方法,在该方法内我们得注意异常的情况
+为0抛异常,不匹配也抛异常
+
+当前字段类型匹配,也有空槽,则寻找空槽将记录放进数组中,为该记录设置一下RecordId,代表他是属于哪张数据页的第几行,标记当前页为脏页,break返回
+
+若查询到最后都没有空槽,则需要自己创建一张空的数据页,写进磁盘,再通过BufferPool从磁盘上调进内存,再进行page的insert操作,将脏页返回
+
+pageId是由tableId和pageNo组成
+
+通过缓冲池的insert方法调用File的insert方法,insert方法再去调用page的insert方法将数据插入数据页中,将脏页集合返回,再将这些脏页put进缓冲池中,原因是可能有的数据页还没修改就被淘汰,导致修改完后不在缓冲池中,这样会造成数据丢失问题
+
+File中直接根据recordId中的pageId拿到对应的数据页id,再从通过缓冲池拿到对应的数据页,调用page的方法
+delete方法也是雷同,判断要删除的记录是否属于当前数据页,再判断要删除的槽是否为空,若不为空,将slot位图对应的位置为0,表示空
+
+最后返回脏页
+```
+
 
 # HeapFile
 HeapFile具有多少数据页：当前File大小 / 一张数据页的大小，向上取整
