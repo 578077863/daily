@@ -4,25 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "ccf9ebfcf030186a",
+        "id": "87bbcb531fc38fce",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "redis/redis.md",
-            "mode": "source",
-            "backlinks": true,
-            "source": false
-          }
-        }
-      },
-      {
-        "id": "d31a52839fd26fba",
-        "type": "leaf",
-        "state": {
-          "type": "markdown",
-          "state": {
-            "file": "面试杂烩/面经.md",
+            "file": "面试杂烩/玛德.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -54,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "redis淘汰",
+                "query": "异步",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -83,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "面试杂烩/面经.md"
+                "file": "面试杂烩/玛德.md"
               }
             }
           },
@@ -104,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "面试杂烩/面经.md",
+                "file": "面试杂烩/玛德.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -121,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "面试杂烩/面经.md",
+                "file": "面试杂烩/玛德.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -133,17 +120,17 @@
     "direction": "horizontal",
     "width": 381
   },
-  "active": "d31a52839fd26fba",
+  "active": "87bbcb531fc38fce",
   "lastOpenFiles": [
+    "面试杂烩/玛德.md",
+    "MySQL/MySQL.md",
+    "java/练习.md",
+    "java/JUC.md",
+    "java/JMM.md",
+    "java/Java基础.md",
     "面试杂烩/面经.md",
     "面试杂烩/面试.md",
-    "面试杂烩/玛德.md",
-    "redis/redis.md",
-    "操作系统/操作系统.md",
-    "MIT/MIT6.830 2021.md",
-    "算法/彩笔笔记.md",
-    "算法/动态规划.md",
-    "算法/贪心算法.md",
-    "Linux/Linux.md"
+    "java/JVM.md",
+    "计算机网络/计算机网络.md"
   ]
 }
