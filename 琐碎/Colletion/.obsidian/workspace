@@ -4,8 +4,23 @@
     "type": "split",
     "children": [
       {
-        "id": "87bbcb531fc38fce",
+        "id": "8da1449bc1777083",
         "type": "leaf",
+        "dimension": 57.21830985915493,
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "java/JUC.md",
+            "mode": "source",
+            "backlinks": true,
+            "source": false
+          }
+        }
+      },
+      {
+        "id": "090f68bcfe1d656e",
+        "type": "leaf",
+        "dimension": 42.78169014084507,
         "state": {
           "type": "markdown",
           "state": {
@@ -41,7 +56,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "异步",
+                "query": "Callable",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -120,17 +135,17 @@
     "direction": "horizontal",
     "width": 381
   },
-  "active": "87bbcb531fc38fce",
+  "active": "090f68bcfe1d656e",
   "lastOpenFiles": [
     "面试杂烩/玛德.md",
-    "MySQL/MySQL.md",
-    "java/练习.md",
     "java/JUC.md",
-    "java/JMM.md",
+    "背诵/笔记.md",
+    "设计模式/设计模式.md",
     "java/Java基础.md",
-    "面试杂烩/面经.md",
-    "面试杂烩/面试.md",
-    "java/JVM.md",
+    "算法/彩笔笔记.md",
+    "redis/redis.md",
+    "MySQL/MySQL.md",
+    "操作系统/操作系统.md",
     "计算机网络/计算机网络.md"
   ]
 }
