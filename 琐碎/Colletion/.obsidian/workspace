@@ -4,27 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "8da1449bc1777083",
+        "id": "7163406445ce431e",
         "type": "leaf",
-        "dimension": 57.21830985915493,
         "state": {
           "type": "markdown",
           "state": {
-            "file": "java/JUC.md",
-            "mode": "source",
-            "backlinks": true,
-            "source": false
-          }
-        }
-      },
-      {
-        "id": "090f68bcfe1d656e",
-        "type": "leaf",
-        "dimension": 42.78169014084507,
-        "state": {
-          "type": "markdown",
-          "state": {
-            "file": "面试杂烩/玛德.md",
+            "file": "背诵/笔记.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -56,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "Callable",
+                "query": "String",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -85,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "面试杂烩/玛德.md"
+                "file": "背诵/笔记.md"
               }
             }
           },
@@ -106,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "面试杂烩/玛德.md",
+                "file": "背诵/笔记.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -123,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "面试杂烩/玛德.md",
+                "file": "背诵/笔记.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -135,17 +120,17 @@
     "direction": "horizontal",
     "width": 381
   },
-  "active": "090f68bcfe1d656e",
+  "active": "7163406445ce431e",
   "lastOpenFiles": [
-    "面试杂烩/玛德.md",
-    "java/JUC.md",
     "背诵/笔记.md",
-    "设计模式/设计模式.md",
-    "java/Java基础.md",
+    "java/JVM.md",
     "算法/彩笔笔记.md",
-    "redis/redis.md",
-    "MySQL/MySQL.md",
+    "java/Java基础.md",
+    "java/java琐碎.md",
+    "算法/md.md",
     "操作系统/操作系统.md",
-    "计算机网络/计算机网络.md"
+    "计算机网络/计算机网络.md",
+    "RPC/RPC框架笔记.md",
+    "RPC/快Run.md"
   ]
 }
