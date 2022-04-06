@@ -53,6 +53,7 @@ public class RpcInvokerProxy implements InvocationHandler {
         request.setParams(args);
         protocol.setBody(request);
 
+        //TODO 大量代理类实例的创建就是从 RpcRequestHandler中调用invoke跑到这里来,这时的RpcConsumer就是新创建的,所以其map就无法共享
         RpcConsumer rpcConsumer = new RpcConsumer();
         MiniRpcFuture<MiniRpcResponse> future = new MiniRpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), timeout);
         MiniRpcRequestHolder.REQUEST_MAP.put(requestId, future);
@@ -62,7 +63,7 @@ public class RpcInvokerProxy implements InvocationHandler {
 
         // TODO hold request by ThreadLocal
 
-        // 等待 RPC 调用执行结果
+        // 等待 RPC 调用执行结果  TODO:方法调用失败重试机制
         return future.getPromise().get(future.getTimeout(), TimeUnit.MILLISECONDS).getData();
     }
 }

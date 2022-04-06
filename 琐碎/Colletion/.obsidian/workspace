@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "背诵/笔记.md",
+            "file": "RPC/快Run.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "String",
+                "query": "锁粗",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "背诵/笔记.md"
+                "file": "RPC/快Run.md"
               }
             }
           },
@@ -91,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "背诵/笔记.md",
+                "file": "RPC/快Run.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "背诵/笔记.md",
+                "file": "RPC/快Run.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -122,15 +122,15 @@
   },
   "active": "7163406445ce431e",
   "lastOpenFiles": [
-    "背诵/笔记.md",
-    "java/JVM.md",
+    "RPC/快Run.md",
+    "RPC/Netty.md",
     "算法/彩笔笔记.md",
-    "java/Java基础.md",
-    "java/java琐碎.md",
-    "算法/md.md",
-    "操作系统/操作系统.md",
     "计算机网络/计算机网络.md",
-    "RPC/RPC框架笔记.md",
-    "RPC/快Run.md"
+    "java/JUC.md",
+    "java/JVM.md",
+    "面试杂烩/玛德.md",
+    "背诵/笔记.md",
+    "java/Java基础.md",
+    "java/java琐碎.md"
   ]
 }

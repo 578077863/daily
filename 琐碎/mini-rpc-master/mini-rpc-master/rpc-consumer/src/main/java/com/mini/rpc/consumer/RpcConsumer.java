@@ -3,25 +3,29 @@ package com.mini.rpc.consumer;
 import com.mini.rpc.codec.MiniRpcDecoder;
 import com.mini.rpc.codec.MiniRpcEncoder;
 import com.mini.rpc.common.MiniRpcRequest;
+import com.mini.rpc.consumer.handler.RpcHeartBeatHandler;
 import com.mini.rpc.common.RpcServiceHelper;
 import com.mini.rpc.common.ServiceMeta;
 import com.mini.rpc.handler.RpcResponseHandler;
 import com.mini.rpc.protocol.MiniRpcProtocol;
 import com.mini.rpc.provider.registry.RegistryService;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Slf4j
 public class RpcConsumer {
     private final Bootstrap bootstrap;
     private final EventLoopGroup eventLoopGroup;
+
+    //这玩意必须全局静态变量,我估计着 RpcInvokerProxy这个类存在着多个实例,导致 providerChannel没办法统一记录 address
+    private final static Map<String,Channel> providerChannel = new ConcurrentHashMap<>();;
 
     public RpcConsumer() {
         bootstrap = new Bootstrap();
@@ -33,9 +37,12 @@ public class RpcConsumer {
                         socketChannel.pipeline()
                                 .addLast(new MiniRpcEncoder())
                                 .addLast(new MiniRpcDecoder())
-                                .addLast(new RpcResponseHandler());
+                                .addLast(new RpcResponseHandler())
+//                                .addLast(new IdleStateHandler(0,5,0, TimeUnit.SECONDS));
+                                .addLast(new RpcHeartBeatHandler());
                     }
                 });
+
     }
 
     public void sendRequest(MiniRpcProtocol<MiniRpcRequest> protocol, RegistryService registryService) throws Exception {
@@ -60,22 +67,57 @@ public class RpcConsumer {
          */
         ServiceMeta serviceMetadata = registryService.discovery(serviceKey, invokerHashCode);
 
+
+
         //接下来通过 Netty 建立 TCP 连接，然后调用 writeAndFlush() 方法将数据发送到远端服务节点。
         if (serviceMetadata != null) {
-            ChannelFuture future = bootstrap.connect(serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort()).sync();
+//            ChannelFuture future = bootstrap.connect(serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort()).sync();
+//
+//            //https://blog.csdn.net/lgj123xj/article/details/78577945 channel知识点
+//            //监听channel的情况，一旦 ！isSuccess，则代表通道关闭，需要优雅关掉线程池，停止请求服务
+//            future.addListener((ChannelFutureListener) arg0 -> {
+//                if (future.isSuccess()) {
+//                    log.info("connect rpc server {} on port {} success.", serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort());
+//                } else {
+//                    log.error("connect rpc server {} on port {} failed.", serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort());
+//                    future.cause().printStackTrace();
+//                    eventLoopGroup.shutdownGracefully();
+//                }
+//            });
+//            future.channel().writeAndFlush(protocol);
 
-            //https://blog.csdn.net/lgj123xj/article/details/78577945 channel知识点
-            //监听channel的情况，一旦 ！isSuccess，则代表通道关闭，需要优雅关掉线程池，停止请求服务
+            Channel channel = getChannel(serviceMetadata);
+            channel.writeAndFlush(protocol);
+        }
+    }
+
+
+    public Channel getChannel(ServiceMeta serviceMetadata) throws InterruptedException {
+
+        String serviceAddr = serviceMetadata.getServiceAddr();
+
+        Channel channel = providerChannel.get(serviceAddr);
+
+
+        if( null == channel){
+            ChannelFuture future = bootstrap.connect(serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort()).sync();
             future.addListener((ChannelFutureListener) arg0 -> {
                 if (future.isSuccess()) {
                     log.info("connect rpc server {} on port {} success.", serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort());
-                } else {
+                } else{
                     log.error("connect rpc server {} on port {} failed.", serviceMetadata.getServiceAddr(), serviceMetadata.getServicePort());
                     future.cause().printStackTrace();
-                    eventLoopGroup.shutdownGracefully();
+
+                    providerChannel.remove(serviceMetadata.getServiceAddr());
+//                    eventLoopGroup.shutdownGracefully();
                 }
             });
-            future.channel().writeAndFlush(protocol);
+
+            channel = future.channel();
+
+            providerChannel.put(serviceAddr, channel);
         }
+
+        return channel;
     }
 }

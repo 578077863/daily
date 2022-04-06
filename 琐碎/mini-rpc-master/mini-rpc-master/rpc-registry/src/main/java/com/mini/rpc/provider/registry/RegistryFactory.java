@@ -22,4 +22,9 @@ public class RegistryFactory {
         }
         return registryService;
     }
+
+    public static RegistryService getInstance(){
+
+        return registryService;
+    }
 }

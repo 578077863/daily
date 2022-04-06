@@ -29,12 +29,12 @@
             <artifactId>rpc-registry</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.mini.rpc</groupId>
-            <artifactId>rpc-protocol</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mini.rpc</groupId>
+            <artifactId>rpc-protocol</artifactId>
         </dependency>
     </dependencies>
 

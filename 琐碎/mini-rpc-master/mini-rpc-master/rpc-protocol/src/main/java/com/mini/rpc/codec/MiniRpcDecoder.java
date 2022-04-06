@@ -2,18 +2,17 @@ package com.mini.rpc.codec;
 
 import com.mini.rpc.common.MiniRpcRequest;
 import com.mini.rpc.common.MiniRpcResponse;
-import com.mini.rpc.protocol.MiniRpcProtocol;
-import com.mini.rpc.protocol.MsgHeader;
-import com.mini.rpc.protocol.MsgType;
-import com.mini.rpc.protocol.ProtocolConstants;
+import com.mini.rpc.protocol.*;
 import com.mini.rpc.serialization.RpcSerialization;
 import com.mini.rpc.serialization.SerializationFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 public class MiniRpcDecoder extends ByteToMessageDecoder {
 
     /*
@@ -100,7 +99,11 @@ public class MiniRpcDecoder extends ByteToMessageDecoder {
                 }
                 break;
             case HEARTBEAT:
-                // TODO
+
+                MiniRpcProtocol<HeartBeatData> protocol = new MiniRpcProtocol<>();
+                protocol.setHeader(header);
+                out.add(protocol);
+
                 break;
         }
     }

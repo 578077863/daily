@@ -787,7 +787,88 @@ monitor在底层，对应C++定义的objectMonitor。
 jdk1.6之后的优化是：
 1. 锁升级机制
 2. 锁消除。一些框架采用保守策略，将程序基于线程安全实现，锁消除是一种编译器优化，通过逃逸分析消除部分无必要的同步代码。
+   ```markdown
+   锁消除是发生在编译器级别的一种锁优化方式。  
+有时候我们写的代码完全不需要加锁，却执行了加锁操作。
+
+@Override
+public synchronized StringBuffer append(String str) {
+    toStringCache = null;
+    super.append(str);
+    return this;
+}
+
+从源码中可以看出，append方法用了synchronized关键词，它是线程安全的。但我们可能仅在线程内部把StringBuffer当作局部变量使用：
+package com.leeib.thread;
+public class Demo {
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
+        int size = 10000;
+        for (int i = 0; i < size; i++) {
+            createStringBuffer("Hyes", "为分享技术而生");
+        }
+        long timeCost = System.currentTimeMillis() - start;
+        System.out.println("createStringBuffer:" + timeCost + " ms");
+    }
+    public static String createStringBuffer(String str1, String str2) {
+        StringBuffer sBuf = new StringBuffer();
+        sBuf.append(str1);// append方法是同步操作
+        sBuf.append(str2);
+        return sBuf.toString();
+    }
+}
+
+代码中createStringBuffer方法中的局部对象sBuf，就只在该方法内的作用域有效，不同线程同时调用createStringBuffer()方法时，都会创建不同的sBuf对象，因此此时的append操作若是使用同步操作，就是白白浪费的系统资源。
+
+这时我们可以通过编译器将其优化，将锁消除，前提是java必须运行在server模式（server模式会比client模式作更多的优化），同时必须开启逃逸分析:
+
+-server -XX:+DoEscapeAnalysis -XX:+EliminateLocks  
+
+其中+DoEscapeAnalysis表示开启逃逸分析，+EliminateLocks表示锁消除。
+
+逃逸分析：比如上面的代码，它要看sBuf是否可能逃出它的作用域？如果将sBuf作为方法的返回值进行返回，那么它在方法外部可能被当作一个全局对象使用，就有可能发生线程安全问题，这时就可以说sBuf这个对象发生逃逸了，因而不应将append操作的锁消除，但我们上面的代码没有发生锁逃逸，锁消除就可以带来一定的性能提升。
+   ```
 3. 锁粗化。在编译期间将相邻的同步代码块合并成一个大的同步代码块，减少反复申请、释放造成的开销。（即使每次都可以获得锁，那么频繁的操作底层同步队列也将造成不必要的消耗）
+   ```markdown
+   通常情况下，为了保证多线程间的有效并发，会要求每个线程持有锁的时间尽可能短，但是大某些情况下，一个程序对同一个锁不间断、高频地请求、同步与释放，会消耗掉一定的系统资源，因为锁的请求、同步与释放本身会带来性能损耗，这样高频的锁请求就反而不利于系统性能的优化了，虽然单次同步操作的时间可能很短。锁粗化就是告诉我们任何事情都有个度，有些情况下我们反而希望把很多次锁的请求合并成一个请求，以降低短时间内大量锁请求、同步、释放带来的性能损耗。
+   public void doSomethingMethod(){
+    synchronized(lock){
+        //do some thing
+    }
+    //这是还有一些代码，做其它不需要同步的工作，但能很快执行完毕
+    synchronized(lock){
+        //do other thing
+    }
+}
+
+上面的代码是有两块需要同步操作的，但在这两块需要同步操作的代码之间，需要做一些其它的工作，而这些工作只会花费很少的时间，那么我们就可以把这些工作代码放入锁内，将两个同步代码块合并成一个，以降低多次锁请求、同步、释放带来的系统性能消耗，合并后的代码如下:
+
+public void doSomethingMethod(){
+    //进行锁粗化：整合成一次锁请求、同步、释放
+    synchronized(lock){
+        //do some thing
+        //做其它不需要同步但能很快执行完的工作
+        //do other thing
+    }
+}
+
+注意：这样做是有前提的，就是中间不需要同步的代码能够很快速地完成，如果不需要同步的代码需要花很长时间，就会导致同步块的执行需要花费很长的时间，这样做也就不合理了。
+
+
+另一种需要锁粗化的极端的情况是：
+
+for(int i=0;i<size;i++){
+    synchronized(lock){
+    }
+}
+
+上面代码每次循环都会进行锁的请求、同步与释放，看起来貌似没什么问题，且在jdk内部会对这类代码锁的请求做一些优化，但是还不如把加锁代码写在循环体的外面，这样一次锁的请求就可以达到我们的要求，除非有特殊的需要：循环需要花很长时间，但其它线程等不起，要给它们执行的机会。
+synchronized(lock){
+    for(int i=0;i<size;i++){
+    }
+}
+
+   ```
 4. 自适应自旋锁。synchronizedCAS占用owner失败后，会进行自旋尝试，这个时间不是固定的，而是**前一次在同一个锁上的自旋时间以及锁的拥有者的状态来决定的**
 >自旋锁的开启：  
 > JDK1.6中-XX:+UseSpinning开启；  

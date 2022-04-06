@@ -2,6 +2,7 @@ package com.mini.rpc.provider;
 
 import com.mini.rpc.codec.MiniRpcDecoder;
 import com.mini.rpc.codec.MiniRpcEncoder;
+import com.mini.rpc.handler.RpcIdleStateHandler;
 import com.mini.rpc.common.RpcServiceHelper;
 import com.mini.rpc.common.ServiceMeta;
 import com.mini.rpc.handler.RpcRequestHandler;
@@ -15,6 +16,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -69,10 +72,19 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
+
+                            log.info("consumer {} connect sucess",socketChannel.remoteAddress());
+
                             socketChannel.pipeline()
+                                    //TODO
                                     .addLast(new MiniRpcEncoder())
                                     .addLast(new MiniRpcDecoder())
                                     .addLast(new RpcRequestHandler(rpcServiceMap));
+
+                                    // 通道没有read 一定时间就触发一个空闲读事件
+//                                    .addLast(new IdleStateHandler(2,0,0, TimeUnit.SECONDS))
+//                                    .addLast(new RpcIdleStateHandler());
+
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
