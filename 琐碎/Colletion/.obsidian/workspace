@@ -4,12 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "7163406445ce431e",
+        "id": "f1a3a91253a66a91",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "RPC/快Run.md",
+            "file": "面试杂烩/玛德.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "锁粗",
+                "query": "事务",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "RPC/快Run.md"
+                "file": "面试杂烩/玛德.md"
               }
             }
           },
@@ -91,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "RPC/快Run.md",
+                "file": "面试杂烩/玛德.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "RPC/快Run.md",
+                "file": "面试杂烩/玛德.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -120,17 +120,17 @@
     "direction": "horizontal",
     "width": 381
   },
-  "active": "7163406445ce431e",
+  "active": "f1a3a91253a66a91",
   "lastOpenFiles": [
-    "RPC/快Run.md",
-    "RPC/Netty.md",
-    "算法/彩笔笔记.md",
-    "计算机网络/计算机网络.md",
-    "java/JUC.md",
-    "java/JVM.md",
     "面试杂烩/玛德.md",
-    "背诵/笔记.md",
+    "java/JMM.md",
+    "MySQL/练习.md",
+    "MySQL/MySQL.md",
+    "面试杂烩/面经.md",
+    "面试杂烩/面试.md",
+    "java/JVM.md",
     "java/Java基础.md",
-    "java/java琐碎.md"
+    "操作系统/操作系统.md",
+    "计算机网络/计算机网络.md"
   ]
 }
