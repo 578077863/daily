@@ -1369,6 +1369,101 @@ Externalizable是serializable的子接口，并且提供了readExternal(ObjectIn
 java的序列化方式性能比较差、只能作用于Java对象，无法实现跨语言。更加推荐使用JSON、protobuf、thrift等方式进行序列化。  
 序列化也是实现PRC框架的基础，因为命令总是需要在网络中进行传输的，而选用一种性能高、序列化体积小的方式就能节省网络流量、减少传输使用的时间。
 
+## Java中的深浅拷贝问题
+
+浅拷贝是指拷贝对象时仅仅拷贝对象本身（包括对象中的基本变量），而不拷贝对象包含的引用指向的对象。深拷贝不仅拷贝对象本身，而且拷贝对象包含的引用指向的所有对象。  
+或者我提供另外一种思路：  
+任何变量本质上都是一个指针，他们经过编译之后都是一个指向某一块内存地址的直接引用，其中基本类型对应的就是字面量，而引用类型就是一个指针，指向其他对象（可以简单看作包含若干个字面量的结构体，即使仍然存在引用也可以使用递归的思维去理解）  
+java默认的拷贝都是浅拷贝，就是当前地址上保存是一个指针，我直接就拷贝这个指针。（这个指针可能是字面量也可能是其他的指针）。而深拷贝就是：如果这个位置的指针指向字面量，我的“拷贝递归”就返回了，而如果这个位置指向的仍然是一个指针，那么我就进行一个递归的解析。（直到所有的指针都被解析为字面量）
+
+### clone
+
+Clone方法返回当前对象的一个副本对象。可以通过操作副本对象而不影响当前对象。  
+**使用clone方法需要实现cloneable接口，并且重写object方法中的clone方法**  
+需要注意的是在clone在**Object中是protected修饰符**。因为所有类都是Object的子类，所以如果不实现clone方法，在**子类中可以直接使用父类的clone方法**，这个clone方法是子类实例从父类继承下来的，是受保护的，其他对象不能从外部访问这个受保护的对象。如果不实现Cloneable接口，只重写clone方法，调用则会抛出异常。
+
+### 重写clone()
+
+```java
+class Stu implements Cloneable{
+    String name;
+    Pen pen = new Pen();
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Stu temp = (Stu) super.clone();
+        temp.pen = (Pen) pen.clone(); //递归设置引用成员的拷贝值
+        return temp;	//返回一个拷贝得到的对象
+    }
+
+}
+class Pen implements Cloneable { //成员必须是可拷贝的
+    String name;
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+}
+
+    
+```
+
+### 数组的拷贝
+
+```
+int[] a ={1,2,0,5};
+int[] c = a.clone();
+Arrays.sort(c);//a数组不会被排序
+
+    
+```
+
+**一维数组的基本类型是深拷贝**，**对于二维数组，可以看做是一维的引用类型数组数组，只传递引用，属于浅克隆**。  
+二维数组的深克隆，需要对内部的每一组一维数组调用clone方法，相当于循环set
+
+```
+int[][] a={{3,1,4,2,5},{4,2}};
+int[][] b=new int[a.length][];
+for(int i=0;i<a.length;i++){
+    b[i]=a[i].clone();
+}
+
+    
+```
+
+对于基本类型system.arraycopy（）是深拷贝，但是对于引用类型（不包括string），拷贝的仍然是地址值，通过引用修改字段后，原数组的对象对应字段也会改变。（上面已经解释的很清楚了）
+
+**对象数组进行深拷贝**：  
+【1】深拷贝的对象实现clone接口  
+【2】将对象数组中的每一个对象进行深拷贝（对每一个数组中的对象调用clone方法）  
+【3】因为object的clone是protected的，只能对本包或者继承类暴露这个方法，所以对象类型要实现Cloneable的接口，才能重写Clone方法
+
+```
+people[] peoples = {new people(1),new people(14),new people(11)};
+people[] clones = peoples.clone();
+for (int i = 0; i < clones.length; i++) {
+    clones[i]= peoples[i].clone();		以此设置为克隆对象
+}
+
+    
+```
+
+### 对protect修饰符以及重写clone()的通俗解释
+
+**如果一个对象o是Object实例，但不是B的实例，在B的代码中不能看到o.clone,就因为它是protected字段或方法**
+
+```
+  void hello() {
+        Object obj = new Object();//父亲的实例
+//        obj.clone() protected修饰，无法调用，编译不通过
+    }
+
+    
+```
+
+> 啥意思呢，我解释一下，如果你不重写clone()方法，那么这个clone()就视为从父类继承下来的方法，那么外部肯定是不能访问的。temp.pen = (Pen) pen.clone()；这行代码编译就不能通过，但是你一旦对它进行重写，意义就不一样了，这个clone()就是你自己的方法了，而不是父类的方法，而**protected主要就是对子类的限定，如果我们想要打破这个限定，让其他对象（两个类属于同一个包）可以调用这个方法，就需要重写这个方法**。
+
+总结：protected的方法只能对子类对象和同一个包下的类可见，当我们没有重写clone()，那么Object的clone()只能对java.lang（和Object同一个包）和Object的当前子类对象可见。**但是当你重写clone()之后，clone()就变成你自己的方法了，那么当前的限定范围随之改变，即为和你一个包下的类以及当前类的子类对象**。
 
 ### Java序列化原理
 
