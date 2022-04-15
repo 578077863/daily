@@ -1333,6 +1333,8 @@ synchronized默认就是非公平的，可以提供代码执行吞吐量和并�
 公平锁对应的同步队列，节点获取同步状态是有严格的顺序要求的，获取公平锁的线程几乎总是需要创建节点和阻塞，导致线程切换频繁、吞吐量下降、并发度下降。
 
 ### 同步组件原理简述
+[Java并发编程的4个同步辅助类（CountDownLatch、CyclicBarrier、Semphore、Phaser） - looyee - 博客园 (cnblogs.com)](https://www.cnblogs.com/looyee/articles/9921910.html)
+
 
 同步组件的实现，本质上都是依赖AQS框架，并且实现框架提供了钩子方法
 
@@ -1838,6 +1840,28 @@ LongAdder可以概括成这样：内部核心数据value分离成一个数组(Ce
 >[(59条消息) Java8-ThreadLocal的Lambda构造方式：withInitial_Zebe的博客-CSDN博客_threadlocal.withinitial](https://blog.csdn.net/zebe1989/article/details/82692551)
 >[【JUC剖析】ThreadLocal类 详解 - 在下右转，有何贵干 - 博客园 (cnblogs.com)](https://www.cnblogs.com/codderYouzg/p/14094442.html)
 
+### 为什么使用弱引用？
+
+从表面上看，发生内存泄漏，是因为Key使用了弱引用类型。但其实是因为整个Entry的key为null后，没有主动清除value导致。很多文章大多分析ThreadLocal使用了弱引用会导致内存泄漏，但为什么使用弱引用而不是强引用？
+
+为了处理非常大和生命周期非常长的线程，哈希表使用弱引用作为 key。
+
+
+下面我们分两种情况讨论：
+
+-   key 使用强引用：引用的ThreadLocal的对象被回收了，但是ThreadLocalMap还持有ThreadLocal的强引用，如果没有手动删除，ThreadLocal不会被回收，导致Entry内存泄漏。
+-   key 使用弱引用：引用的ThreadLocal的对象被回收了，由于ThreadLocalMap持有ThreadLocal的弱引用，即使没有手动删除，ThreadLocal也会被回收。value在下一次ThreadLocalMap调用set,get，remove的时候会被清除。  
+    比较两种情况，我们可以发现：由于ThreadLocalMap的生命周期跟Thread一样长，如果都没有手动删除对应key，都会导致内存泄漏，但是使用弱引用可以多一层保障：弱引用ThreadLocal不会内存泄漏，对应的value在下一次ThreadLocalMap调用set,get,remove的时候会被清除。
+
+因此，ThreadLocal内存泄漏的根源是：由于ThreadLocalMap的生命周期跟Thread一样长，如果没有手动删除对应key的value就会导致内存泄漏，而不是因为弱引用。
+
+综合上面的分析，我们可以理解ThreadLocal内存泄漏的前因后果，那么怎么避免内存泄漏呢？
+
+-   每次使用完ThreadLocal，都调用它的remove()方法，清除数据。
+
+在使用线程池的情况下，没有及时清理ThreadLocal，不仅是内存泄漏的问题，更严重的是可能导致业务逻辑出现问题。所以，使用ThreadLocal就跟加锁完要解锁一样，用完就清理。
+
+
 
 作用：
 提供线程内的 **局部变量**，**不同的线程** 之间 **不会相互干扰**  
@@ -1856,7 +1880,9 @@ LongAdder可以概括成这样：内部核心数据value分离成一个数组(Ce
     
 2.  线程隔离 ： 各线程之间的数据相互隔离却又具备并发性，避免同步方式带来的性能损失
 
+使用ThreadLocal的典型场景正如上面的数据库连接管理，线程会话管理等场景，只适用于独立变量副本的情况，如果变量为全局共享的，则不适用在高并发下使用。
 
+适用于无状态，副本变量独立后不影响业务逻辑的高并发场景。如果如果业务逻辑强依赖于副本变量，则不适合用ThreadLocal解决，需要另寻解决方案。
 
 ## java线程同步方法
 

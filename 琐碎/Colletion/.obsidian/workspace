@@ -4,12 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "1f9701d7fa0be115",
+        "id": "f0b8f58830a5faeb",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "面试杂烩/玛德.md",
+            "file": "redis/redis.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -17,12 +17,12 @@
         }
       },
       {
-        "id": "98d582a6af4a16a9",
+        "id": "4460b17be5946bd5",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "java/JUC.md",
+            "file": "面试杂烩/玛德.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -54,7 +54,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "线程同步",
+                "query": "动态代理",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -83,7 +83,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "java/JUC.md"
+                "file": "面试杂烩/玛德.md"
               }
             }
           },
@@ -104,7 +104,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "java/JUC.md",
+                "file": "面试杂烩/玛德.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -121,10 +121,18 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "java/JUC.md",
+                "file": "面试杂烩/玛德.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
+            }
+          },
+          {
+            "id": "b8b4ae6649596e56",
+            "type": "leaf",
+            "state": {
+              "type": "calendar",
+              "state": {}
             }
           }
         ]
@@ -133,17 +141,17 @@
     "direction": "horizontal",
     "width": 381
   },
-  "active": "98d582a6af4a16a9",
+  "active": "4460b17be5946bd5",
   "lastOpenFiles": [
-    "java/JUC.md",
     "面试杂烩/玛德.md",
-    "java/JMM.md",
+    "redis/redis.md",
+    "面试杂烩/中专笔记.md",
+    "计算机网络/计算机网络.md",
+    "面试杂烩/面试.md",
     "面试杂烩/面经.md",
-    "背诵/笔记.md",
+    "面试杂烩/介绍.md",
     "MySQL/MySQL.md",
-    "java/JVM.md",
-    "java/Java基础.md",
-    "java/练习.md",
-    "计算机网络/计算机网络.md"
+    "MySQL/练习.md",
+    "java/java琐碎.md"
   ]
 }
