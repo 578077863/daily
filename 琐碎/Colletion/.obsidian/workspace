@@ -4,25 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "f0b8f58830a5faeb",
+        "id": "07ceafc83867d00d",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "redis/redis.md",
-            "mode": "source",
-            "backlinks": true,
-            "source": false
-          }
-        }
-      },
-      {
-        "id": "4460b17be5946bd5",
-        "type": "leaf",
-        "state": {
-          "type": "markdown",
-          "state": {
-            "file": "面试杂烩/玛德.md",
+            "file": "项目/秒杀/秒杀商城.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -54,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "动态代理",
+                "query": "最长回文子串",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -83,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "面试杂烩/玛德.md"
+                "file": "项目/秒杀/秒杀商城.md"
               }
             }
           },
@@ -104,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "面试杂烩/玛德.md",
+                "file": "项目/秒杀/秒杀商城.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -121,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "面试杂烩/玛德.md",
+                "file": "项目/秒杀/秒杀商城.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -139,19 +126,19 @@
       }
     ],
     "direction": "horizontal",
-    "width": 381
+    "width": 100
   },
-  "active": "4460b17be5946bd5",
+  "active": "07ceafc83867d00d",
   "lastOpenFiles": [
+    "项目/秒杀/秒杀商城.md",
+    "计算机基础/算法/动态规划.md",
+    "计算机基础/算法/彩笔笔记.md",
+    "计算机基础/算法/中心扩散法.md",
+    "计算机基础/操作系统/操作系统.md",
+    "数据库/MySQL/MySQL.md",
     "面试杂烩/玛德.md",
-    "redis/redis.md",
-    "面试杂烩/中专笔记.md",
-    "计算机网络/计算机网络.md",
-    "面试杂烩/面试.md",
-    "面试杂烩/面经.md",
-    "面试杂烩/介绍.md",
-    "MySQL/MySQL.md",
-    "MySQL/练习.md",
-    "java/java琐碎.md"
+    "计算机基础/算法/缓存算法.md",
+    "项目/小说项目/前提知识.md",
+    "计算机基础/计算机网络/计算机网络.md"
   ]
 }
