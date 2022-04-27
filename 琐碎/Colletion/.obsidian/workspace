@@ -4,12 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "07ceafc83867d00d",
+        "id": "2aa68ef32ec22b07",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "项目/秒杀/秒杀商城.md",
+            "file": "计算机基础/算法/买卖股票.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "最长回文子串",
+                "query": "309. 最佳买卖股票时机含冷冻期",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "项目/秒杀/秒杀商城.md"
+                "file": "计算机基础/算法/买卖股票.md"
               }
             }
           },
@@ -91,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "项目/秒杀/秒杀商城.md",
+                "file": "计算机基础/算法/买卖股票.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "项目/秒杀/秒杀商城.md",
+                "file": "计算机基础/算法/买卖股票.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -126,19 +126,19 @@
       }
     ],
     "direction": "horizontal",
-    "width": 100
+    "width": 366
   },
-  "active": "07ceafc83867d00d",
+  "active": "2aa68ef32ec22b07",
   "lastOpenFiles": [
-    "项目/秒杀/秒杀商城.md",
-    "计算机基础/算法/动态规划.md",
+    "计算机基础/算法/买卖股票.md",
     "计算机基础/算法/彩笔笔记.md",
-    "计算机基础/算法/中心扩散法.md",
+    "计算机基础/算法/二分法.md",
+    "计算机基础/算法/动态规划.md",
+    "计算机基础/算法/二叉树.md",
+    "计算机基础/算法/多线程.md",
     "计算机基础/操作系统/操作系统.md",
-    "数据库/MySQL/MySQL.md",
-    "面试杂烩/玛德.md",
-    "计算机基础/算法/缓存算法.md",
-    "项目/小说项目/前提知识.md",
-    "计算机基础/计算机网络/计算机网络.md"
+    "系统设计/后端存储实战/后端存储实战.md",
+    "中间件/消息队列/消息队列.md",
+    "项目/秒杀/秒杀商城.md"
   ]
 }

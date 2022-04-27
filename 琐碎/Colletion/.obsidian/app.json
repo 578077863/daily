@@ -3,7 +3,7 @@
   "livePreview": true,
   "foldHeading": true,
   "foldIndent": true,
-  "attachmentFolderPath": "./attachments",
+  "attachmentFolderPath": "附件文件夹",
   "alwaysUpdateLinks": true,
   "newFileLocation": "root",
   "readableLineLength": false,
