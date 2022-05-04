@@ -1896,3 +1896,12 @@ LongAdder可以概括成这样：内部核心数据value分离成一个数组(Ce
    乐观锁
 3. 无同步方法
    采用线程本地存储ThreadLocal：如果一段代码中所需要的数据必须与其他代码共享，那就看看这些共享数据的代码是否能保证在同一个线程中执行完，如果能保证，就可以把共享数据的可见范围限制在同一个线程之内，这样，无需同步也能保证线程之间不出现数据争用
+
+
+
+## 惊群效应
+[Linux 惊群效应之 Nginx 解决方案 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/51251700)
+
+[epoll惊群效应深度剖析 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/363623898)
+
+[什么是惊群，如何有效避免惊群? - 知乎 (zhihu.com)](https://www.zhihu.com/question/22756773)
