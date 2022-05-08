@@ -1899,9 +1899,5 @@ LongAdder可以概括成这样：内部核心数据value分离成一个数组(Ce
 
 
 
-## 惊群效应
-[Linux 惊群效应之 Nginx 解决方案 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/51251700)
 
-[epoll惊群效应深度剖析 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/363623898)
-
-[什么是惊群，如何有效避免惊群? - 知乎 (zhihu.com)](https://www.zhihu.com/question/22756773)
+## 线程池

@@ -4,12 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "880f7ef5f86c910a",
+        "id": "081c7e3eff31a588",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "计算机基础/计算机网络/计算机网络.md",
+            "file": "java/JUC.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "IO多路复用",
+                "query": "旋转",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "计算机基础/计算机网络/计算机网络.md"
+                "file": "java/JUC.md"
               }
             }
           },
@@ -91,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "计算机基础/计算机网络/计算机网络.md",
+                "file": "java/JUC.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "计算机基础/计算机网络/计算机网络.md",
+                "file": "java/JUC.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -128,17 +128,17 @@
     "direction": "horizontal",
     "width": 366
   },
-  "active": "880f7ef5f86c910a",
+  "active": "081c7e3eff31a588",
   "lastOpenFiles": [
-    "计算机基础/计算机网络/计算机网络.md",
-    "中间件/redis/练习.md",
-    "面试杂烩/玛德.md",
-    "系统设计/系统设计/系统设计草稿.md",
     "java/JUC.md",
-    "背诵/笔记.md",
-    "项目/秒杀/秒杀商城.md",
-    "项目/RPC/RPC框架笔记.md",
-    "计算机基础/设计模式/设计模式.md",
-    "项目/RPC/快Run.md"
+    "java/JVM.md",
+    "计算机基础/算法/二分法.md",
+    "中间件/分布式/分布式事务.md",
+    "数据库/MySQL/MySQL.md",
+    "计算机基础/刷题日记/我刷我刷.md",
+    "计算机基础/算法/md.md",
+    "计算机基础/算法/彩笔笔记.md",
+    "面试杂烩/玛德.md",
+    "系统设计/如何设计一个秒杀系统/如何设计一个秒杀系统.md"
   ]
 }
