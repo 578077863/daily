@@ -68,3 +68,41 @@ Springboot的主配置类标注了springBootApplication注解，其主要由两�
 【1】springBoot启动时，通过 **@enableAutoConfiguration注解找到jar包中spring.factories配置文件中所有的自动配置类 ，并对其加载。因此springBoot启动时，会加载大量自动配置类 。
 【2】自动配置类以autoConfiguration结尾来命名，**XXXautoConfiguration配置类**中通过**EnableConfigurationProperties注解**取得**XXXProperties类**在全局配置文件中配置的属性。  
 【3】XXXProperties类通过@configurationProperties注解与全局配置文件中对应的属性绑定。**给容器中自动配置类添加组件的时候，会从XXXproperties类中获取某些属性。我们就可以在配置文件中指定这些属性的值**
+
+
+
+
+
+
+
+
+## @RequestMapping 参数说明：
+
+value:  指定请求的实际地址， 比如 /action/info之类。  
+method：  指定请求的method类型， GET、POST、PUT、DELETE等  
+consumes： 指定处理请求的提交内容类型（Content-Type），例如application/json, text/html;  
+produces:    指定返回的内容类型，仅当request请求头中的(Accept)类型中包含该指定类型才返回  
+params： 指定request中必须包含某些参数值是，才让该方法处理  
+headers： 指定request中必须包含某些指定的header值，才能让该方法处理请求
+
+[applicationx-www-form-urlencoded与applicationjson - 百度文库 (baidu.com)](https://wenku.baidu.com/view/82ccbfdc0142a8956bec0975f46527d3250ca656.html)
+
+[什么是application/x-www-form-urlencoded - 云+社区 - 腾讯云 (tencent.com)](https://cloud.tencent.com/developer/article/1885136)
+
+
+## 什么是application/x-www-form-urlencoded
+　　它是一种编码类型。当URL地址里包含非西欧字符的字符串时，系统会将这些字符转换成application/x-www-form-urlencoded字符串。表单里提交时也是如此，当包含非西欧字符的字符串时，系统也会将这些字符转换成application/x-www-form-urlencoded字符串，然后在服务器端自动解码。FORM元素的enctype属性指定了表单数据向服务器提交时所采用的编码类型，默认的缺省值是“application/x-www-form-urlencoded。
+
+　　然而，在向服务器发送大量的文本、包含大量非ASCII字符的文本或二进制数据时这种编码方式效率很低。这个时候我们就要使用另一种编码类型“multipart/form-data”，比如在我们在做上传的时候，表单的enctype属性一般会设置成“multipart/form-data”。  Browser端/<form/>表单的ENCTYPE属性值为multipart/form-data，它告诉我们传输的数据要用到多媒体传输协议，由于多媒体传输的都是大量的数据，所以规定上传文件必须是post方法，/<input/>的type属性必须是file。
+
+## Content-Type
+[(77条消息) Content-Type 详解_leoss.H的博客-CSDN博客_content-type](https://blog.csdn.net/qq_14869093/article/details/86307084)
+
+request 的Content-Type
+一般我们在开发的过程中需要注意客户端发送请求（Request）时的Content-Type设置，特别是使用ajax的时候，如果设置得不准确，很有可能导致请求失败。比如在spring中，如果接口使用了@RequestBody，spring强大的自动解析功能，会将请求实体的内容自动转换为Bean，但前提是请求的Content-Type必须设置为application/json，否正就会返回415错误。
+注：415 错误是 Unsupported media type，即不支持的媒体类型。
+建议：
+
+1. 如果是一个restful接口（json格式），一般将Content-Type设置为application/json; charset=UTF-8；
+2. 如果是文件上传，一般Content-Type设置为multipart/form-data
+3. 如果普通表单提交，一般Content-Type设置为application/x-www-form-urlencoded
