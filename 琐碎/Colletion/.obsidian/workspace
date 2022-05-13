@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "项目/RPC/RPC面试题.md",
+            "file": "计算机基础/刷题日记/我刷我刷.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "redis",
+                "query": "我刷",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "项目/RPC/RPC面试题.md"
+                "file": "计算机基础/刷题日记/我刷我刷.md"
               }
             }
           },
@@ -91,7 +91,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "项目/RPC/RPC面试题.md",
+                "file": "计算机基础/刷题日记/我刷我刷.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +108,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "项目/RPC/RPC面试题.md",
+                "file": "计算机基础/刷题日记/我刷我刷.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -130,15 +130,15 @@
   },
   "active": "081c7e3eff31a588",
   "lastOpenFiles": [
-    "项目/RPC/RPC面试题.md",
-    "项目/秒杀/秒杀商城.md",
-    "系统设计/如何设计一个秒杀系统/如何设计一个秒杀系统.md",
-    "java/JVM.md",
-    "中间件/redis/redis.md",
-    "框架/Spring系列/Spring和SpringBoot.md",
-    "面试杂烩/玛德.md",
+    "计算机基础/刷题日记/我刷我刷.md",
     "中间件/Kafka核心技术与实战/Kafka核心技术与实战.md",
-    "中间件/消息队列/attachments/Pasted image 20220423235628.png",
-    "中间件/消息队列/attachments/Pasted image 20220423235633.png"
+    "计算机基础/计算机网络/计算机网络.md",
+    "系统设计/系统设计/系统设计草稿.md",
+    "系统设计/系统设计/系统设计.md",
+    "系统设计/系统设计.md",
+    "系统设计/归纳笔记.md",
+    "系统设计/如何设计一个秒杀系统/如何设计一个秒杀系统.md",
+    "数据库/MySQL/MySQL.md",
+    "面试杂烩/面经.md"
   ]
 }
