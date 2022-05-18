@@ -4,12 +4,12 @@
     "type": "split",
     "children": [
       {
-        "id": "081c7e3eff31a588",
+        "id": "1c72f83e97552724",
         "type": "leaf",
         "state": {
           "type": "markdown",
           "state": {
-            "file": "计算机基础/刷题日记/我刷我刷.md",
+            "file": "中间件/分布式/分布式事务.md",
             "mode": "source",
             "backlinks": true,
             "source": false
@@ -41,7 +41,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "我刷",
+                "query": "2PC",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -50,7 +50,8 @@
               }
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -70,7 +71,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "计算机基础/刷题日记/我刷我刷.md"
+                "file": "中间件/分布式/分布式事务.md"
               }
             }
           },
@@ -91,7 +92,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "计算机基础/刷题日记/我刷我刷.md",
+                "file": "中间件/分布式/分布式事务.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -108,7 +109,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "计算机基础/刷题日记/我刷我刷.md",
+                "file": "中间件/分布式/分布式事务.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -128,17 +129,17 @@
     "direction": "horizontal",
     "width": 366
   },
-  "active": "081c7e3eff31a588",
+  "active": "1c72f83e97552724",
   "lastOpenFiles": [
+    "中间件/分布式/分布式事务.md",
+    "java/JUC.md",
+    "java/JVM.md",
+    "java/tomcat.md",
+    "java/练习.md",
+    "java/JMM.md",
+    "计算机基础/算法/彩笔笔记.md",
     "计算机基础/刷题日记/我刷我刷.md",
-    "中间件/Kafka核心技术与实战/Kafka核心技术与实战.md",
-    "计算机基础/计算机网络/计算机网络.md",
-    "系统设计/系统设计/系统设计草稿.md",
-    "系统设计/系统设计/系统设计.md",
-    "系统设计/系统设计.md",
-    "系统设计/归纳笔记.md",
-    "系统设计/如何设计一个秒杀系统/如何设计一个秒杀系统.md",
-    "数据库/MySQL/MySQL.md",
-    "面试杂烩/面经.md"
+    "面试杂烩/玛德.md",
+    "计算机基础/计算机网络/计算机网络.md"
   ]
 }
